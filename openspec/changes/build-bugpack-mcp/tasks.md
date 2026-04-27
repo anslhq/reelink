@@ -5,7 +5,7 @@
 - [ ] 1.3 Implement config loading from `~/.bugpack/config.json` while reading API keys from environment variables only.
 - [ ] 1.4 Implement `VideoPreprocessor` with `ffmpeg-static`, fps=1 extraction, max 64 frames, and long edge <=896px.
 - [ ] 1.5 Implement `VLMRouter` with OpenRouter/Qwen3-VL hosted analysis and LM Studio local fallback plumbing.
-- [ ] 1.6 Implement `bugpack_analyze(path, fps_sample=4, focus="any")` for `.mov`/`.mp4` path-only input.
+- [ ] 1.6 Implement `bugpack_analyze(path, fps_sample=4, focus="any")` for `.mov`/`.mp4`/`.webm` path-only input.
 - [ ] 1.7 Return `{recording_id, duration_sec, summary, findings: [{id, ts, type, severity, title, confidence}], next_steps}`.
 - [ ] 1.8 Add Codex-compatible MCP config output for the demo path.
 - [ ] 1.9 Validate one demo video produces at least one structured finding.
@@ -20,7 +20,7 @@
 - [ ] 2.6 Add MCP tool annotations/descriptions optimized for coding agents.
 - [ ] 2.7 Validate four demo bugs across motion, loading, layout, and navigation/state categories.
 
-## 3. DevX and Agent Registration
+## 3. Hours 0-3 parallel: DevX and Agent Registration
 
 - [ ] 3.1 Implement `npx bugpack init` as the one-line setup flow.
 - [ ] 3.2 Detect and generate MCP config snippets for Codex CLI, Cursor, Claude Code, Cline/Roo, and VS Code Copilot where possible.
@@ -39,7 +39,7 @@
 - [ ] 4.7 Implement `bugpack_get_dom(recording_id, ts)` returning `{path, tree_summary}`.
 - [ ] 4.8 Implement `bugpack_get_components(recording_id, ts, x?, y?)` returning `{component, file, line, props}` when available.
 
-## 5. Timestamp-Aligned State Querying
+## 5. Hours 3-5 parallel: Timestamp-Aligned State Querying
 
 - [ ] 5.1 Normalize timestamps across video frames, findings, rrweb events, fiber commits, network events, console events, and trace metadata.
 - [ ] 5.2 Store time deltas and stream availability so queries can distinguish exact, nearest, and missing context.
@@ -47,7 +47,7 @@
 - [ ] 5.4 Attach nearby console and network events to findings without embedding large HAR or trace payloads in MCP responses.
 - [ ] 5.5 Ensure all query tools return file paths and concise summaries rather than pixels, bytes, or unbounded logs.
 
-## 6. React Fiber Source Map
+## 6. Hours 3-5 parallel: React Fiber Source Map
 
 - [ ] 6.1 Use bippy directly as the Layer 1 React/fiber dependency rather than React Grab.
 - [ ] 6.2 Treat React Grab as inspiration for UX and coding-agent-readable source context only.
@@ -63,7 +63,7 @@
 - [ ] 7.4 Provide recent-frame-plus-state observations shaped as `{frame_path, dom_summary, component_map, network_since_last, console_since_last}` for next-action input.
 - [ ] 7.5 Ensure failed or partial agent runs preserve the recording and explain failure state.
 
-## 8. Eval Evidence Generation
+## 8. Hours 5-6 parallel: Eval Evidence Generation
 
 - [ ] 8.1 Represent recordings and agent runs as eval evidence before attempting to generate deterministic tests.
 - [ ] 8.2 Generate Playwright checks only for findings with reliable runtime/repro context.
@@ -71,9 +71,9 @@
 - [ ] 8.4 Store eval artifact paths, expected pre-fix behavior, confidence, and verification results in the recording folder.
 - [ ] 8.5 Avoid making unverified benchmark or token-saving claims in generated docs or output.
 
-## 9. Demo and Verification
+## 9. Hours 6-6.5: Demo and Verification
 
-- [ ] 9.1 Verify the Layer 0 path-only workflow on at least one local `.mov` or `.mp4` recording.
+- [ ] 9.1 Verify the Layer 0 path-only workflow on at least one local `.mov`, `.mp4`, or `.webm` recording.
 - [ ] 9.2 Verify the cached recording folder contains manifest, frames, analysis output, and explicit missing-stream statuses.
 - [ ] 9.3 Verify the MCP tools can be invoked from a coding-agent-compatible stdio command path.
 - [ ] 9.4 Verify four demo videos produce structured findings or clear low-confidence/no-finding results.
