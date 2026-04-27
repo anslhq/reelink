@@ -31,6 +31,14 @@ The system SHALL preprocess recordings for model analysis using deterministic, b
 - **THEN** the system SHALL apply or clamp the requested sampling according to the preprocessing policy
 - **AND** the response or manifest SHALL record the effective sampling strategy used
 
+### Requirement: Timestamp-Grounded Prompting
+The system SHALL prompt vision models with explicit timestamp markers so findings can be grounded to recording time.
+
+#### Scenario: Frame prompt includes timestamp markers
+- **WHEN** sampled frames are sent to a vision model
+- **THEN** the prompt SHALL interleave literal `<X.X seconds>` text markers between frames
+- **AND** the prompt SHALL request structured JSON output containing `bug_start_s` and `bug_end_s` fields
+
 ### Requirement: Model-Agnostic Finding Contract
 The system SHALL expose a stable finding schema regardless of the underlying hosted or local vision model provider.
 

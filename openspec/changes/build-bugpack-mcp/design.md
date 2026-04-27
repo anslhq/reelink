@@ -105,12 +105,12 @@ Tools should return file paths, summaries, IDs, and structured metadata rather t
 Internal modules should include:
 
 - `VideoPreprocessor`: `ffmpeg-static`, fps=1, max 64 frames, long edge <=896px.
-- `VLMRouter`: OpenRouter/Qwen3-VL hosted path first, LM Studio local fallback.
+- `VLMRouter`: hosted demo default `qwen/qwen3-vl-30b-a3b-instruct` via OpenRouter, with provider preference `DeepInfra`, `Alibaba`, then `Parasail`; LM Studio local fallback uses `Qwen3-VL-8B-Instruct-MLX-4bit` through the local OpenAI-compatible API.
 - `RecordingStore`: `.bugpack/<id>/` and sibling `recording.mov.bugpack/` folder layouts.
 - `PlaywrightHarness`: Layer 1 recording and Layer 2 agent-run browser control.
 - Init scripts for bippy `install-hook-only` and rrweb record.
 
-The result schema must not depend on one provider. Gemini can be useful as a reference benchmark/oracle, but the dossier default is the Qwen3-VL family and model-agnostic routing.
+The result schema must not depend on one provider. The hackathon demo default is pinned to OpenRouter/Qwen3-VL so implementers do not drift to Gemini/OpenAI by convenience. Avoid SGLang-backed providers for the OCR-heavy demo path due to known OCR discrepancy risk from the dossier. Gemini can be useful as a reference benchmark/oracle, but the dossier default is the Qwen3-VL family and model-agnostic routing.
 
 ### Decision 4: Timestamp alignment is the architectural unlock
 
@@ -133,6 +133,12 @@ npx bugpack init
 ```
 
 Init should detect and register available agents where possible: Codex CLI, Cursor, Claude Code, Cline/Roo, and VS Code Copilot. It should write MCP config snippets with absolute `npx` paths on Apple Silicon where needed. Persistent non-secret config belongs in `~/.bugpack/config.json`; API keys must come from environment variables only. `bugpack doctor` should diagnose missing Node version, ffmpeg, Playwright browser install, MCP config, model API keys, and local LM Studio availability.
+
+### Decision 7: Lock the demo around Harsha’s real transition bug
+
+The primary hackathon demo SHALL use Harsha’s portfolio view-transition flicker from the Granola transcript: words/text are not seamless and warp or overlap during navigation, making the issue hard to cleanly capture with a screenshot. The backup demo SHALL be the hard-refresh FOUC/green-gray overlay before the main shell from the same transcript.
+
+Rationale: these are real bugs Harsha lived, not contrived fixtures. They are authentic, emotionally stronger, and prove the exact bug class BugPack exists for: transient visual state that disappears before a screenshot or normal DOM inspection captures it. This locks the 2-minute demo direction and emotional hook.
 
 ## Hackathon Build Order
 

@@ -48,3 +48,11 @@ The system SHALL provide `bugpack_run(task_description, target_url)` so agents c
 - **WHEN** the browser task fails, times out, or reaches an uncertain state
 - **THEN** the system SHALL preserve the partial recording as evidence
 - **AND** it SHALL summarize failure state and recommended next steps for the agent
+
+### Requirement: Continuous Observation State
+The system SHALL provide agents with continuous timestamped state instead of requiring per-step fresh observation snapshots.
+
+#### Scenario: Agent reasons over time window
+- **WHEN** an agent needs to understand what happened across multiple actions
+- **THEN** it SHALL be able to query recording state by timestamp or timestamp range without re-observing the browser
+- **AND** state retrieval SHALL not require re-running screenshot-plus-accessibility-tree dumps

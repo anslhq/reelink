@@ -4,7 +4,7 @@
 - [ ] 1.2 Add the stdio MCP server entry point with `bugpack_*` tool names and path-oriented returns.
 - [ ] 1.3 Implement config loading from `~/.bugpack/config.json` while reading API keys from environment variables only.
 - [ ] 1.4 Implement `VideoPreprocessor` with `ffmpeg-static`, fps=1 extraction, max 64 frames, and long edge <=896px.
-- [ ] 1.5 Implement `VLMRouter` with OpenRouter/Qwen3-VL hosted analysis and LM Studio local fallback plumbing.
+- [ ] 1.5 Implement OpenRouter `qwen/qwen3-vl-30b-a3b-instruct` hosted call with structured JSON output (MUST).
 - [ ] 1.6 Implement `bugpack_analyze(path, fps_sample=4, focus="any")` for `.mov`/`.mp4`/`.webm` path-only input.
 - [ ] 1.7 Return `{recording_id, duration_sec, summary, findings: [{id, ts, type, severity, title, confidence}], next_steps}`.
 - [ ] 1.8 Add Codex-compatible MCP config output for the demo path.
@@ -17,8 +17,9 @@
 - [ ] 2.3 Implement `bugpack_get_frame(recording_id, ts)` returning `{path}`.
 - [ ] 2.4 Implement `bugpack_query(recording_id, question)` over cached findings, frames, and manifest metadata.
 - [ ] 2.5 Implement `bugpack_get_finding(recording_id, finding_id)` returning description, stack when known, surrounding console, DOM diff, suggested fix, and frame paths when available.
-- [ ] 2.6 Add MCP tool annotations/descriptions optimized for coding agents.
-- [ ] 2.7 Validate four demo bugs across motion, loading, layout, and navigation/state categories.
+- [ ] 2.6 Add provider config schema and routing abstraction for OpenRouter provider order and future backends (SHOULD).
+- [ ] 2.7 Add MCP tool annotations/descriptions optimized for coding agents.
+- [ ] 2.8 Validate four demo bugs across motion, loading, layout, and navigation/state categories.
 
 ## 3. Hours 0-3 parallel: DevX and Agent Registration
 
@@ -62,6 +63,7 @@
 - [ ] 7.3 Store the resulting recording as eval evidence in the same folder architecture.
 - [ ] 7.4 Provide recent-frame-plus-state observations shaped as `{frame_path, dom_summary, component_map, network_since_last, console_since_last}` for next-action input.
 - [ ] 7.5 Ensure failed or partial agent runs preserve the recording and explain failure state.
+- [ ] 7.6 Wire LM Studio `Qwen3-VL-8B-Instruct-MLX-4bit` local fallback if the hosted demo path is stable (NICE).
 
 ## 8. Hours 5-6 parallel: Eval Evidence Generation
 
