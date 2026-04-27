@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "skills": {
+    "ai-vision": {
+      "source": "httprunner/skills",
+      "sourceType": "github",
+      "computedHash": "36bbb18754979ee868b0e8d37366166b6aaa0ab846ddd7fb98165359841eb3e8"
+    },
+    "fastmcp": {
+      "source": "ovachiever/droid-tings",
+      "sourceType": "github",
+      "computedHash": "e945141cbe2f0a11c8f15a5dd70d51f7229babfab758041f3142cd4cd2889ea4"
+    },
+    "ffmpeg": {
+      "source": "digitalsamba/claude-code-video-toolkit",
+      "sourceType": "github",
+      "computedHash": "51fa05bc18bb2691e622aefd1d8ec6d4d96a9e9c44cdf599003c9d6003d11a07"
+    },
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "computedHash": "9e1c8b3103f92fa8092568a44fe64858de7c5c9dc65ce4bea8f168080e889cfd"
+    },
+    "hf-cli": {
+      "source": "huggingface/skills",
+      "sourceType": "github",
+      "computedHash": "2ad9fecee3ba5a41b5acd2e0decde8a6bb69c53d26cc3c8bf97a4a5c0ed3231f"
+    },
+    "huggingface-best": {
+      "source": "huggingface/skills",
+      "sourceType": "github",
+      "computedHash": "c3655c565e3bc526c17a2a051f452e3ddecb699308ecbad3509439eec9ef811c"
+    },
+    "huggingface-community-evals": {
+      "source": "huggingface/skills",
+      "sourceType": "github",
+      "computedHash": "32eec43c4c176086132aefee5377b47e98095727289f128492da697dccbc1598"
+    },
+    "huggingface-datasets": {
+      "source": "huggingface/skills",
+      "sourceType": "github",
+      "computedHash": "79398ce664a1554bd55582cfa933ca0e6732840c5e2e00afe0132c44e22ee767"
+    },
+    "huggingface-local-models": {
+      "source": "huggingface/skills",
+      "sourceType": "github",
+      "computedHash": "98d8dd87770bafa3dc8e777204264e2d57ea550b3e04aae805e93d1e45d056a8"
+    },
+    "huggingface-paper-publisher": {
+      "source": "huggingface/skills",
+      "sourceType": "github",
+      "computedHash": "f20ababe4c4dfdc5e1b9bb24ffbb95792efff0e56f16917f41f9d665e2d31bfe"
+    },
+    "huggingface-papers": {
+      "source": "huggingface/skills",
+      "sourceType": "github",
+      "computedHash": "d10f77f78592263ed257ff1be56ab53469490ada7e8158460037af88c52454a7"
+    },
+    "huggingface-tool-builder": {
+      "source": "huggingface/skills",
+      "sourceType": "github",
+      "computedHash": "5466e19d49b55fd0cec167f921acb01bb7473c30dee8f60962225efb96099908"
+    },
+    "huggingface-vision-trainer": {
+      "source": "huggingface/skills",
+      "sourceType": "github",
+      "computedHash": "bf5eff3c692372a798f1763f975ed2725794a55af4f0ba4de58492e7d83b8d75"
+    },
+    "openai-responses": {
+      "source": "ovachiever/droid-tings",
+      "sourceType": "github",
+      "computedHash": "3826702851a123c9b0123ea86106aecb168603602e055a1d64974f6dcd5f9ab6"
+    },
+    "playwright": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "computedHash": "007afdd243c0b38f68a1278cb113f01116341159597bedf37e064ca4a3ce5dd1"
+    },
+    "playwright-generate-test": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "8f963da3e25f705ff39755b8b990f20da0c0320cb86ac83fcc4d2d4eca91f6e4"
+    },
+    "transformers-js": {
+      "source": "huggingface/skills",
+      "sourceType": "github",
+      "computedHash": "f61c531d0cc9ee4cb714b5a651f4a7a939ce127f70333d44af179cbbb1663de1"
+    },
+    "uv-package-manager": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "c2bf8833d6c3ffa283171ef3b8da90274451605e170077f1ee6529cc38aa6438"
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://capy.ai/settings.schema.json",
+  "hooks": {
+    "context": {
+      "maxOutputLength": 3000,
+      "truncateStrategy": "tail"
+    }
+  },
+  "files": [
+    "compass_artifact_wf-a67f8827-c720-4665-bc55-9c404dcd32bb_text_markdown.md",
+    "skills-lock.json"
+  ]
+}
