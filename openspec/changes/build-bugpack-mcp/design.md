@@ -1,121 +1,153 @@
 ## Context
 
-This change builds a video-based UI bug testing/reporting system for transient web UI failures: view-transition glitches, Framer Motion or CSS animation jank, hard-refresh flashes, loading-state races, and other failures that screenshots routinely miss. The product is BugPack: a workflow and evidence package that starts from a local screen recording, identifies the visible bug and timestamp, then progressively adds runtime/source/eval context when the app and repo are available.
+BugPack is video-as-state for AI browser agents. It turns screen recordings and agent browser sessions into timestamp-aligned state packages: video, findings, DOM timeline, React component/source map, network/console, trace, and eval evidence.
 
-The implementation must respect the source hierarchy established during exploration: the Granola transcript and original submission define the product as a bug/testing system; MCP is a bridge/tool, not the headline. The minimum useful product is video bug understanding and evidence packaging. Runtime recapture, React source mapping, and generated evals are layered capabilities that deepen the result without blocking basic video-only analysis.
-
-The hackathon constraint favors a local, Codex-friendly workflow that can run from a file path because coding agents generally cannot ingest raw video directly. The implementation should optimize for a reliable 2-minute demo and a 6.5-hour build window.
+The wedge is still simple: arbitrary video path to structured findings. The thesis is broader: browser/coding agents need a persistent temporal observation primitive. Screenshot/eval/DOM loops force agents to repeatedly request fresh snapshots, spend tokens on state that immediately goes stale, and miss temporal causality. Playwright MCP and similar tools are valuable, and newer CLI/scoped approaches reduce observation cost, but they still operate over discrete snapshots. Video plus DOM/runtime timelines lets agents inspect motion, causality, and state at any timestamp.
 
 ## Goals / Non-Goals
 
 **Goals:**
-- Accept a local screen recording path and produce structured bug analysis with timestamp/range, description, confidence, bug type, and repro hint.
-- Create a thin BugPack folder that preserves the recording and timestamp-centered evidence without overbuilding the artifact bundle.
-- Provide a local agent bridge so Codex or another coding agent can invoke analysis using local file paths and read BugPack outputs.
-- Add an optional Playwright recapture path for app URL + repro steps that records browser video, DOM/runtime snapshots, console logs, network data, and traces.
-- Add React/Next.js source mapping when a development app is available, prioritizing React Grab-style component/file context and using bippy/react-grep-style internals where helpful.
-- Generate Playwright regression evals where the bug type supports a reliable red-to-green check.
-- Keep the demo focused on video catching transient bugs that screenshots miss.
+- Ship Layer 0 first: `bugpack_analyze(path)` accepts `.mov`/`.mp4`/`.webm` and returns `{recording_id, duration_sec, summary, findings: [{id, ts, type, severity, title, confidence}], next_steps}` with only a video path.
+- Define Layer 1 as a recording folder that aligns video, frames, Playwright trace, rrweb DOM events, bippy fiber/source data, network, console, and findings by timestamp.
+- Define Layer 2 as agent self-recording: `bugpack_run(task_description, target_url)` records a browser task, stores eval evidence, and feeds next-action observation.
+- Keep the MCP tool surface small, path-oriented, and usable by Codex, Cursor, Claude Code, Cline/Roo, VS Code Copilot, and related agents.
+- Use open/model-agnostic defaults: OpenRouter/Qwen3-VL hosted path, LM Studio local fallback, and provider routing behind stable schemas.
+- Provide a hackathon plan that can demo video-to-finding quickly, then add cached folders/query tools, then stretch into runtime/agent recording.
 
 **Non-Goals:**
-- Do not make MCP the product. It is an integration mechanism.
-- Do not require a Chrome extension, SaaS recorder, or SDK install for the basic video-only flow.
-- Do not build video-RAG over historical recordings for MVP.
-- Do not make FFmpeg/frame-diff/scene detection the headline or P0 intelligence layer.
-- Do not promise deterministic animation screenshot evals for every motion bug.
-- Do not require full trace/HAR/React tree/computed styles/eval artifacts for every BugPack.
+- Do not frame BugPack as mainly a video bug reporter.
+- Do not frame BugPack as mainly an MCP server.
+- Do not require a browser, source repo, Chrome extension, SaaS recorder, or app SDK for Layer 0.
+- Do not make Gemini the primary model path; it may be used only as benchmark/reference/fallback context if mentioned.
+- Do not overclaim exact token savings or benchmark numbers as requirements.
+- Do not require every recording to contain every Layer 1 artifact; absent streams must be explicit in the manifest.
 
-## Decisions
+## Product Layers
 
-### Decision 1: Product-first layering
+### Layer 0: Video finding wedge
 
-BugPack is designed as a layered testing system:
-
-```text
-Basic
-  local video path -> bug analysis -> timestamp -> thin BugPack
-
-Enhanced
-  timestamp + app URL + repro steps -> Playwright recapture -> runtime evidence
-
-Advanced
-  runtime evidence + React source mapping -> generated eval -> agent fix workflow
-```
-
-Rationale: the transcript’s lowest quality bar is video-only analysis. The deeper browser/source/eval loop is valuable, but it should not block the core demo.
-
-Alternative considered: implement the full Compass-style BugPack bundle up front. Rejected because it overweights implementation plumbing and risks missing the core value under hackathon time pressure.
-
-### Decision 2: Local bridge as implementation detail
-
-The system will expose local tooling through a local agent bridge, preferably a TypeScript MCP server for the hackathon path, because the workflow starts from local video files and Playwright/React tooling is naturally Node/TypeScript-oriented.
-
-Rationale: Codex/coding agents can pass file paths even when they cannot directly ingest video attachments. A local bridge lets agents call tools like `analyze_video_file` and read BugPack outputs.
-
-Alternative considered: Python FastMCP as the default. FastMCP is valid, but it adds cross-runtime complexity because Playwright, React Grab, and source tooling are already TypeScript-native. Python remains reasonable for later packaging or model-specific helpers.
-
-### Decision 3: Direct video/evidence intelligence before FFmpeg-heavy analysis
-
-The analysis flow should be presented as video bug understanding. FFmpeg is used for deterministic support operations: metadata inspection, evidence clip extraction, key frame extraction near known timestamps, and optional contact sheets for model fallbacks.
-
-Rationale: the user explicitly identified random frame splitting/sampling as the naive path. The product should not be “FFmpeg plus random screenshots.”
-
-Alternative considered: scene-change/frame-diff prefilter as P0. Rejected for MVP because it changes the story and introduces tuning risk. It can be a later cost/latency optimization.
-
-### Decision 4: Thin BugPack by default
-
-The default BugPack should contain:
+`bugpack_analyze(path, fps_sample=4, focus="any")` accepts `.mov`/`.mp4`/`.webm` and requires only a local video path. It returns:
 
 ```text
-manifest.json
-original video reference or copy
-bug_analysis.json
-evidence_clip.mp4
-frames/before.jpg
-frames/at_bug.jpg
-frames/after.jpg
-metadata_status.json
+{recording_id, duration_sec, summary, findings: [{id, ts, type, severity, title, confidence}], next_steps}
 ```
 
-Enhanced/advanced artifacts are added only when collected:
+No browser, source code, DOM, Playwright run, or app SDK is required. The MVP should preprocess videos with `ffmpeg-static` at 1 fps, cap to 64 frames, and resize the long edge to <=896px for model affordability. `fps_sample` is part of the public tool contract; the MVP may clamp it through the preprocessor policy.
+
+### Layer 1: Recording state package
+
+A BugPack recording is a folder, not a single file:
 
 ```text
-dom_snapshot.html
-console.log
-network.har
-trace.zip
-source_candidates.json
-react_context.json
-generated_eval.spec.ts
-verification_result.json
+my-bug.bugpack/
+  video.webm
+  trace.zip
+  rrweb-events.jsonl
+  fiber-commits.jsonl
+  source-dictionary.json
+  network.har
+  console.jsonl
+  manifest.json
+  frames/
 ```
 
-Rationale: a thin package preserves the product promise while avoiding mandatory collection of brittle or unavailable context.
+The implementation should store recordings under `.bugpack/<id>/` for generated sessions and may create sibling folders such as `recording.mov.bugpack/` for imported videos. Layer 1 uses Playwright `trace.zip`, rrweb incremental DOM mutation events, and bippy fiber commits/source dictionaries, all timestamp-aligned. React Grab remains an inspiration and UX reference; bippy is the core dependency for React/fiber commit streams.
 
-### Decision 5: React source mapping uses pragmatic adapters
+### Layer 2: Agent self-recording
 
-For React/Next.js development apps, source mapping should prioritize React Grab-style context because it directly maps visible UI elements to component/file/source context and matches the desired visual selection UX. bippy/react-grep-style internals can support automated fiber/source lookup during Playwright recapture.
+`bugpack_run(task_description, target_url)` records an agent’s own browser session. The recording becomes both eval evidence and next-action input. Instead of repeatedly dumping screenshot/a11y tree/DOM state, the agent should be able to read a recent frame plus merged state:
 
-Rationale: React Grab aligns with the transcript’s reference examples and offers a usable UX model. bippy is useful for automated instrumentation, but dev-mode and React-version caveats must be respected.
+```text
+{frame_path, dom_summary, component_map, network_since_last, console_since_last}
+```
 
-### Decision 6: Eval generation must match reliability, not spectacle
+The recording is then queryable by timestamp and usable as durable proof of what the agent attempted.
 
-Generated evals should be selected by bug type:
+## Architecture Decisions
 
-- loading/infinite-spinner: invariant assertion such as spinner hides after response
-- hard-refresh flash/FOUC: screenshot or color/style invariant at a controlled load point
-- route/view-transition glitch: bounded visual evidence plus a safer DOM/style invariant when possible
-- animation glitch: optional visual regression, but not guaranteed deterministic
+### Decision 1: Node 20+ TypeScript package with MCP stdio default
 
-Rationale: Playwright screenshot assertions and clocks can be brittle for animation timing. The demo should still show video catching motion bugs, but the final red-to-green eval should be reliable.
+BugPack should be a Node 20+ TypeScript package runnable through `npx -y bugpack`. The default integration surface is a stdio MCP server because coding agents already know how to launch local stdio MCP tools. Streamable HTTP via `--http` can be added later without changing the product model.
+
+Rationale: Playwright, rrweb, and React/fiber instrumentation are naturally TypeScript-oriented, and local file-path workflows fit MCP stdio. MCP is the packaging/integration layer, not the product thesis.
+
+### Decision 2: Small `bugpack_*` tool surface
+
+The MCP surface should stay small, with 5-7 tools and stable path-oriented returns:
+
+```text
+bugpack_analyze(path, fps_sample=4, focus="any")
+  -> {recording_id, duration_sec, summary, findings[], next_steps}
+
+bugpack_get_finding(recording_id, finding_id)
+  -> {full description, stack, surrounding console, dom_diff, suggested_fix, frame_paths[]}
+
+bugpack_get_frame(recording_id, ts)
+  -> {path}
+
+bugpack_get_dom(recording_id, ts)
+  -> {path, tree_summary}
+
+bugpack_get_components(recording_id, ts, x?, y?)
+  -> {component, file, line, props}
+
+bugpack_query(recording_id, question)
+  -> free-form answer
+
+bugpack_run(task_description, target_url)
+  -> {recording_id, success, summary}
+```
+
+Tools should return file paths, summaries, IDs, and structured metadata rather than embedding pixels, large DOM dumps, video bytes, or trace bytes in responses.
+
+### Decision 3: Model routing stays behind stable schemas
+
+Internal modules should include:
+
+- `VideoPreprocessor`: `ffmpeg-static`, fps=1, max 64 frames, long edge <=896px.
+- `VLMRouter`: OpenRouter/Qwen3-VL hosted path first, LM Studio local fallback.
+- `RecordingStore`: `.bugpack/<id>/` and sibling `recording.mov.bugpack/` folder layouts.
+- `PlaywrightHarness`: Layer 1 recording and Layer 2 agent-run browser control.
+- Init scripts for bippy `install-hook-only` and rrweb record.
+
+The result schema must not depend on one provider. Gemini can be useful as a reference benchmark/oracle, but the dossier default is the Qwen3-VL family and model-agnostic routing.
+
+### Decision 4: Timestamp alignment is the architectural unlock
+
+Layer 1 should align all collected streams by recording timestamp: video frames, findings, rrweb events, fiber commits, source dictionary entries, network requests, console events, trace events, and eval artifacts. The manifest should make missing streams explicit instead of pretending every recording has full context.
+
+Rationale: the value is not just “find a bug in a video.” The value is that an agent can ask what DOM, component, network, and console state surrounded a frame or finding without re-observing the browser from scratch.
+
+### Decision 5: Use bippy directly for React/fiber source context
+
+React/fiber source mapping should use bippy directly for commit streams and source dictionaries. React Grab is a strong UX inspiration for selecting UI and surfacing component/file context, but it should not be the core dependency for the automated Layer 1 capture path.
+
+Rationale: bippy aligns with the needed per-commit timeline and source mapping. The implementation must remain best-effort because React internals, build modes, and source maps vary.
+
+### Decision 6: DevX is part of the product surface
+
+The CLI should support one-line setup:
+
+```text
+npx bugpack init
+```
+
+Init should detect and register available agents where possible: Codex CLI, Cursor, Claude Code, Cline/Roo, and VS Code Copilot. It should write MCP config snippets with absolute `npx` paths on Apple Silicon where needed. Persistent non-secret config belongs in `~/.bugpack/config.json`; API keys must come from environment variables only. `bugpack doctor` should diagnose missing Node version, ffmpeg, Playwright browser install, MCP config, model API keys, and local LM Studio availability.
+
+## Hackathon Build Order
+
+- Hours 0-1.5: Layer 0 minimum must ship: TypeScript MCP scaffold, `bugpack_analyze`, `ffmpeg-static` frame extraction at fps=1/max 64, OpenRouter Qwen3-VL structured prompt, Codex config, and one demoable video-to-finding flow.
+- Hours 1.5-3: Add `bugpack_get_frame`, `bugpack_query`, cached recording folders, tool annotations, and validate four demo bugs.
+- Hours 3-5: Stretch into Layer 1: `npx bugpack record <url>`, Playwright headed recorder, bippy and rrweb init scripts, trace.zip capture, folder merge, `bugpack_get_dom`, and `bugpack_get_components`.
+- Hours 5-6: Add Layer 2 only if time: `bugpack_run` with the recording as eval evidence and next-action input.
+- Final polish: README/demo script and agent config instructions after the working demo path is stable.
 
 ## Risks / Trade-offs
 
-- Direct video model quality may miss sub-second glitches -> Mitigation: use user hint, ask for timestamp fallback, and extract evidence around suspected times for fallback image analysis.
-- OpenAI/Codex-native APIs may require frame/contact-sheet preprocessing instead of raw video -> Mitigation: keep provider behind `analyze_video_file` and preserve model-agnostic BugPack schema.
-- Gemini may be useful as an oracle but not acceptable as primary demo path -> Mitigation: treat Gemini as validation/fallback, not the core architecture.
-- React source mapping is dev-mode and React-version sensitive -> Mitigation: make it optional and return `not_collected` or best-effort source candidates when unavailable.
-- Full runtime recapture may not reproduce user-submitted video exactly -> Mitigation: preserve original video evidence and make repro steps/hints explicit.
-- Animation visual evals may be flaky -> Mitigation: prefer stable invariant tests for generated evals and label visual evals as evidence or optional checks.
-- Local file access creates security boundaries -> Mitigation: require explicit local paths, keep processing local, avoid uploading source or secrets, and redact logs where needed.
-- Overbuilding the BugPack bundle could kill hackathon velocity -> Mitigation: ship Basic first, then add Enhanced and Advanced layers only after the video-to-BugPack path works.
+- Video-only models may miss subtle or sub-second findings -> Mitigation: deterministic frame extraction, user focus hints, confidence scores, and queryable frames around candidate timestamps.
+- Frame preprocessing can make the product look like screenshot sampling -> Mitigation: present it as an affordability layer behind video-as-state, not the product thesis.
+- OpenRouter/Qwen3-VL availability may vary -> Mitigation: keep `VLMRouter` provider-agnostic and support LM Studio local fallback.
+- Layer 1 capture may not reproduce imported videos -> Mitigation: preserve imported Layer 0 evidence and store generated sessions as separate recordings or merged attempts.
+- rrweb/bippy/source maps are development-mode and framework-version sensitive -> Mitigation: make streams optional and explicit in the manifest.
+- Browser traces, HARs, and console logs can contain secrets -> Mitigation: redact/omit sensitive headers and tokens, never store API keys in config, and summarize before exposing large artifacts.
+- Token savings claims are easy to overstate -> Mitigation: describe the qualitative bottleneck and avoid normative benchmark claims until measured.
