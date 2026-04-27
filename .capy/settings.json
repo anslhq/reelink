@@ -1,9 +1,13 @@
 {
   "$schema": "https://capy.ai/settings.schema.json",
   "hooks": {
+    "setup": [
+      {
+        "command": "bun add -g @fission-ai/openspec@latest"
+      }
+    ],
     "context": {
-      "maxOutputLength": 3000,
-      "truncateStrategy": "tail"
+      "maxOutputLength": 3000
     }
   },
   "files": [
