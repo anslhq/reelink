@@ -1,34 +1,37 @@
 ## Why
 
-Transient UI bugs in motion-heavy web apps are painful to report and debug because screenshots miss the exact failure state: view transitions warp text, hard-refresh loading shells flash for a few frames, animations race, and QA has to describe timing-sensitive behavior in prose. BugPack turns a screen recording into a bug-testing artifact that coding agents can understand: timestamped visual evidence first, then runtime/source context and regression proof when available.
+BugPack is video-as-state for AI browser agents: the missing observation primitive for coding/browser agents that need to understand what happened over time, not just what one snapshot currently shows. It turns screen recordings and agent browser sessions into timestamp-aligned state packages containing video, findings, DOM timeline, React component/source map, network/console, trace, and eval evidence.
+
+The current screenshot/eval/DOM loop is the bottleneck for AI browser agents. Playwright MCP-style observation repeatedly spends tokens on fresh accessibility or DOM state, and newer scoped/CLI approaches reduce the cost without changing the fact that agents are still reasoning over discrete snapshots. Video plus timestamped state makes motion bugs first-class, lets agents query state on demand by timestamp, and exposes temporal causality that is invisible in isolated screenshots.
+
+Bug reporting is the Layer 0 wedge: paste an arbitrary video path and get useful structured findings. The larger product is the recording state package. MCP is the packaging and integration surface for Codex, Cursor, Claude Code, Cline/Roo, VS Code Copilot, and similar agents; it is important, but it is not the product.
 
 ## What Changes
 
-- Introduce a video-based UI bug analysis workflow that accepts a local screen recording and returns a structured bug summary, timestamp/range, confidence, and repro hint.
-- Create a thin BugPack evidence package for each recording containing the original video reference/copy, bug analysis JSON, and minimal timestamp-centered evidence clips/frames.
-- Add an optional instrumented browser recapture path that uses Playwright to collect runtime evidence around the suspected timestamp, including DOM, console, network, and trace artifacts.
-- Add React source-context mapping for React/Next.js development apps using React Grab/bippy/react-grep-style component and source lookup where available.
-- Generate Playwright regression evals from BugPack evidence for selected bug types, prioritizing reliable red-to-green checks over brittle animation screenshot claims.
-- Provide a Codex/coding-agent workflow through a local bridge so agents can operate on local video files and BugPack folders even when the chat harness cannot ingest videos directly.
-- Keep MCP/transport, FFmpeg, and model-provider choices as implementation details; the product is the bug testing/reporting system, not the transport layer.
+- Introduce Layer 0 video finding analysis through `bugpack_analyze(path, fps_sample=4, focus="any")`, accepting `.mov`/`.mp4`/`.webm` with only a local path and returning `{recording_id, duration_sec, summary, findings, next_steps}`.
+- Create Layer 1 BugPack recordings as folders, not files, with timestamp-aligned video, sampled frames, Playwright trace, rrweb DOM mutation stream, bippy fiber commits/source dictionary, network, console, manifest, and findings.
+- Add query and retrieval tools that return paths and summaries rather than raw pixels/bytes: `bugpack_get_finding`, `bugpack_get_frame`, `bugpack_get_dom`, `bugpack_get_components`, and `bugpack_query`.
+- Add Layer 2 agent recording with `bugpack_run(task_description, target_url)`, where the agent records its own browser session and uses the recording as both eval evidence and next-action input.
+- Package the local integration as a Node 20+ TypeScript MCP server/package runnable by `npx -y bugpack`, with stdio MCP as the default transport and streamable HTTP as an optional later path.
+- Use `ffmpeg-static` for deterministic preprocessing, OpenRouter/Qwen3-VL as the hosted open/model-agnostic default, LM Studio as a local fallback, Playwright as the browser engine, rrweb for DOM mutations, and bippy directly for React fiber/source context.
+- Provide `npx bugpack init`, agent MCP config detection/registration, `~/.bugpack/config.json`, env-only API keys, and `bugpack doctor` troubleshooting.
 
 ## Capabilities
 
 ### New Capabilities
-- `video-bug-analysis`: Analyze a UI screen recording and identify visible transient bugs with timestamped structured output.
-- `bugpack-evidence-package`: Persist the recording, bug analysis, and minimal timestamp-centered evidence in an agent-readable folder.
-- `runtime-context-capture`: Recapture a reported flow in a browser and collect runtime evidence such as DOM snapshots, console logs, network data, traces, and screenshots.
-- `react-source-mapping`: Map visible UI elements or timestamped DOM context to React components, source files, selectors, and relevant styles when a React development environment is available.
-- `regression-eval-generation`: Generate Playwright regression tests from BugPack evidence and context, with strategies matched to bug type and reliability.
-- `agent-bugfix-workflow`: Orchestrate the end-to-end coding-agent flow from video path to BugPack, context, eval, patch guidance, and verification result.
+- `video-finding-analysis`: Analyze arbitrary screen recordings into timestamped structured findings without requiring app, browser, source, or SDK context.
+- `recording-state-package`: Persist BugPack recordings as timestamp-aligned folders containing video, findings, frames, trace, DOM, React/fiber, network, console, and manifest artifacts as available.
+- `timestamped-dom-timeline`: Capture and retrieve per-timestamp DOM, console, network, trace, and finding context from rrweb and Playwright timelines.
+- `react-fiber-source-map`: Map timestamped UI state and optional coordinates to React components, source files, lines, and props using bippy fiber commits/source dictionaries.
+- `agent-recording-workflow`: Let coding/browser agents invoke BugPack tools, initialize MCP configs, and record their own browser tasks through `bugpack_run`.
+- `eval-evidence-generation`: Treat recordings as eval evidence and, where reliable, derive verification artifacts from timestamp-aligned video/state packages.
 
 ### Modified Capabilities
 
 ## Impact
 
-- New local tooling for video-based bug analysis and BugPack generation.
-- New browser/runtime capture integration using Playwright.
-- New optional React/Next.js source-context adapter using React Grab/bippy/react-grep-style techniques.
-- New generated Playwright eval artifacts for regression proof.
-- New Codex skill/agent workflow files for running the bug-testing flow from a local video path.
-- Dependencies likely include TypeScript, MCP TypeScript SDK, Playwright, FFmpeg binary access, OpenAI vision/Responses APIs, and optional model/provider fallbacks for validation.
+- New local BugPack CLI/MCP planning surface centered on video-as-state, not video bug reporting alone.
+- New Layer 0 arbitrary-video workflow for hackathon wedge demos.
+- New Layer 1 recording folder architecture with Playwright trace, rrweb DOM events, bippy fiber/source events, network, console, frames, findings, and manifest.
+- New Layer 2 agent recording workflow where recordings become both eval evidence and next-action input.
+- Dependencies likely include Node 20+, TypeScript, MCP TypeScript SDK, Playwright, `ffmpeg-static`, OpenRouter/Qwen3-VL integration, LM Studio fallback support, rrweb, and bippy.
