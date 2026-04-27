@@ -8,7 +8,7 @@ Bug reporting is the Layer 0 wedge: paste an arbitrary video path and get useful
 
 ## What Changes
 
-- Introduce Layer 0 video finding analysis through `bugpack_analyze(path, fps_sample=4, focus="any")`, accepting `.mov`/`.mp4` with only a local path and returning `{recording_id, duration_sec, summary, findings, next_steps}`.
+- Introduce Layer 0 video finding analysis through `bugpack_analyze(path, fps_sample=4, focus="any")`, accepting `.mov`/`.mp4`/`.webm` with only a local path and returning `{recording_id, duration_sec, summary, findings, next_steps}`.
 - Create Layer 1 BugPack recordings as folders, not files, with timestamp-aligned video, sampled frames, Playwright trace, rrweb DOM mutation stream, bippy fiber commits/source dictionary, network, console, manifest, and findings.
 - Add query and retrieval tools that return paths and summaries rather than raw pixels/bytes: `bugpack_get_finding`, `bugpack_get_frame`, `bugpack_get_dom`, `bugpack_get_components`, and `bugpack_query`.
 - Add Layer 2 agent recording with `bugpack_run(task_description, target_url)`, where the agent records its own browser session and uses the recording as both eval evidence and next-action input.
