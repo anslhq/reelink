@@ -4,7 +4,7 @@
 The system SHALL analyze arbitrary local screen recordings as Layer 0 video findings without requiring browser, source, DOM, trace, or SDK context.
 
 #### Scenario: Analyze supported recording path
-- **WHEN** a user calls `bugpack_analyze(path, fps_sample=4, focus="any")` with a valid local `.mov` or `.mp4` recording
+- **WHEN** a user calls `bugpack_analyze(path, fps_sample=4, focus="any")` with a valid local `.mov`, `.mp4`, or `.webm` recording
 - **THEN** the system SHALL return `{recording_id, duration_sec, summary, findings, next_steps}`
 - **AND** each finding SHALL include `id`, `ts`, `type`, `severity`, `title`, and `confidence`
 

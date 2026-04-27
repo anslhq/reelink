@@ -7,7 +7,7 @@ The wedge is still simple: arbitrary video path to structured findings. The thes
 ## Goals / Non-Goals
 
 **Goals:**
-- Ship Layer 0 first: `bugpack_analyze(path)` accepts `.mov`/`.mp4` and returns `{recording_id, duration_sec, summary, findings: [{id, ts, type, severity, title, confidence}], next_steps}` with only a video path.
+- Ship Layer 0 first: `bugpack_analyze(path)` accepts `.mov`/`.mp4`/`.webm` and returns `{recording_id, duration_sec, summary, findings: [{id, ts, type, severity, title, confidence}], next_steps}` with only a video path.
 - Define Layer 1 as a recording folder that aligns video, frames, Playwright trace, rrweb DOM events, bippy fiber/source data, network, console, and findings by timestamp.
 - Define Layer 2 as agent self-recording: `bugpack_run(task_description, target_url)` records a browser task, stores eval evidence, and feeds next-action observation.
 - Keep the MCP tool surface small, path-oriented, and usable by Codex, Cursor, Claude Code, Cline/Roo, VS Code Copilot, and related agents.
@@ -26,7 +26,7 @@ The wedge is still simple: arbitrary video path to structured findings. The thes
 
 ### Layer 0: Video finding wedge
 
-`bugpack_analyze(path, fps_sample=4, focus="any")` accepts `.mov`/`.mp4` and requires only a local video path. It returns:
+`bugpack_analyze(path, fps_sample=4, focus="any")` accepts `.mov`/`.mp4`/`.webm` and requires only a local video path. It returns:
 
 ```text
 {recording_id, duration_sec, summary, findings: [{id, ts, type, severity, title, confidence}], next_steps}
