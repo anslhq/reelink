@@ -1,3 +1,41 @@
+## Current State (auto-updated 2026-04-29 ~15:58 AEST)
+
+**Where we are:**
+
+| Phase | Status | Notes |
+|---|---|---|
+| **P0** Architecture Lock + Layer 0 Baseline | ✅ **COMPLETE** | Verified end-to-end on Mac Studio. WorkItem schema round-trips through `qwen/qwen3.6-flash` raw video. |
+| **P1A** Deterministic Retrieval + DevX | 🟡 **IN PROGRESS** | Cursor agent on `feat/faction-a-retrieval-devx` branch, just unblocked from rebase. Expecting first commits ~16:15 AEST. |
+| **P1B** Demo + Submission Path | 🟡 **TESTABLE NOW** (the parts that don't depend on P1A) | Integration runbook written: `docs/integration-testing-runbook.md`. Harsha needs to execute Steps 4-7 to capture the portfolio bug video and run the agent against it. |
+| **P2** Layer 1 Recording State Package | ⬜ **NOT STARTED** | Faction B not spawned. Recommend skipping for v0.1, scoping to v0.2 roadmap. |
+| **P3** Layer 2 + Eval Evidence + Hardening | ⬜ **OUT OF SCOPE** | v0.2+. |
+
+**What you can test RIGHT NOW** (no more code required):
+- ✅ **Step into `docs/integration-testing-runbook.md`** — wire Reelink to your portfolio repo, register MCP in Codex CLI, record the bug, run the agent prompt, verify WorkItem JSON.
+- This validates: P0.7 baseline in the real world, P1B.1 (bug capture), P1B.4 (MCP from Codex CLI).
+- Does NOT test: P1A.x retrieval tools (still being implemented), P2.x Layer 1.
+
+**What's blocked on P1A landing:**
+- P1B.5 (`reelink_get_finding` from a coding agent)
+- The "agent retrieves a specific WorkItem by id" demo flow
+
+**Demo-path completeness when P1A lands** (~30 min from now):
+- Run `bun run reelink/src/cli.ts analyze <bug.mov>` → get WorkItem[]
+- Codex calls `reelink_get_finding(recording_id, "f1")` → enriched WorkItem returned
+- Codex calls `reelink_query(recording_id, "summary")` → deterministic answer
+- Codex calls `reelink_query(recording_id, "list work items")` → WorkItem array
+- That's enough surface area for a coherent v0.1 demo.
+
+---
+
+## Active Risks (per `docs/workitem-schema-validation.md`)
+
+1. **Lifecycle fields are stamped, not classified.** Decorative for v0.1. Acceptable.
+2. **Old `findings`-shaped fixture exists locally.** Faction A retrieval helpers must tolerate or repair.
+3. **Silent `ts: 0` coercion at `reelink/src/vlm/router.ts:105`.** P1A.0 (pre-retrieval) fix proposed.
+
+---
+
 ## P0: [Arch][Layer0] Architecture Lock and Verified Layer 0 Baseline
 
 ### P0.1 [Arch] Repository Scaffold
@@ -58,27 +96,33 @@
 
 ## P1A: [Retrieval][DevX] Deterministic Retrieval and DevX
 
-- [ ] 1A.1 Implement `RecordingStore` read helpers for `.reelink/<id>/` and sibling `recording.mov.reelink/` layouts: `loadAnalysis(id)`, `loadManifest(id)`, `listFrames(id)`, and `findFrameNearTimestamp(id, ts)`.
+**Owner:** Faction A (Cursor agent on `feat/faction-a-retrieval-devx`). **Status: IN PROGRESS as of 16:00 AEST.**
+
+- [ ] 1A.0 [PROPOSED — pre-retrieval] Fix silent `ts: 0` coercion at `reelink/src/vlm/router.ts:105`. Filter null-`ts` findings with a stderr warn log; do not let them through as `ts: 0`. Single ~10 LOC commit before the rest of P1A. Reason: timestamp grounding is the entire video-as-state premise.
+- [ ] 1A.1 Implement `RecordingStore` read helpers for `.reelink/<id>/` and sibling `recording.mov.reelink/` layouts: `loadAnalysis(id)`, `loadManifest(id)`, `listFrames(id)`, and `findFrameNearTimestamp(id, ts)`. Tolerate pre-rename fixtures with `findings` key by mapping to `work_items`.
 - [ ] 1A.2 Persist or read `manifest.json`, original/imported video reference or copy, sampled frames, analysis output, and stream availability status. Manifest carries `prod_build` boolean and `streams` map per existing spec scenarios.
-- [ ] 1A.3 Implement `reelink_get_frame(recording_id, ts)` returning `{path}`.
-- [ ] 1A.4 Implement `reelink_get_finding(recording_id, work_item_id)` retrieving the identified work item and returning description, stack when known, surrounding console, DOM diff, suggested fix, and frame paths when available.
-- [ ] 1A.5 Implement deterministic `reelink_query(recording_id, question)` over `analysis.json`, `manifest.json`, work_items, summary, next_steps, and manifest streams. No GPT and no ToolLoopAgent in v0.1.
+- [ ] 1A.3 Implement `reelink_get_frame(recording_id, ts)` returning `{path}`. **[Testable from integration runbook once shipped.]**
+- [ ] 1A.4 Implement `reelink_get_finding(recording_id, work_item_id)` retrieving the identified work item and returning description, stack when known, surrounding console, DOM diff, suggested fix, and frame paths when available. **[Testable from integration runbook once shipped — unblocks P1B.5.]**
+- [ ] 1A.5 Implement deterministic `reelink_query(recording_id, question)` over `analysis.json`, `manifest.json`, work_items, summary, next_steps, and manifest streams. No GPT and no ToolLoopAgent in v0.1. Use `docs/reelink-query-algorithm.md` as the matcher spec. **[Testable from integration runbook once shipped.]**
 - [ ] 1A.6 Keep `reelink_get_dom(recording_id, ts)` honest before Layer 1: return `{ status: "not_collected", reason: "Layer 1 streams not present" }`; do not synthesize tree structure from frames.
-- [ ] 1A.7 Implement `npx reelink init` as the one-line setup flow for agent config registration.
-- [ ] 1A.8 Detect and generate MCP config snippets for Codex CLI, Cursor, Claude Code, Cline/Roo, and VS Code Copilot where possible.
-- [ ] 1A.9 Write MCP config snippets with absolute `npx` paths on Apple Silicon when required.
-- [ ] 1A.10 Implement `reelink doctor` checks for Node version, package resolution, Playwright browser install, hosted model API key presence, and agent config.
-- [ ] 1A.11 Ensure troubleshooting output never prints API keys or sensitive environment values.
+- [ ] 1A.5b [STRETCH — re-enabled 2026-04-29 ~16:05 AEST after OpenAI key available] Hybrid `reelink_query` GPT fallback. Deterministic matcher (P1A.5) is the fast path. When the deterministic matcher returns `{ answer: null, reason: ... }`, fall back to a GPT-5-class ToolLoopAgent (AI SDK v6) that has read-only access to `loadAnalysis(id)`, `loadManifest(id)`, `findWorkItemById(id, fid)`, `findFrameNearTimestamp(id, ts)` as private tools. Use `@ai-sdk/openai` provider with `OPENAI_API_KEY` from env. Wrap with `withToolLogging` and `experimental_telemetry: telemetryFor("reelink_query.gpt_fallback")`. Per Decision 11 of `design.md`: this is the "two providers do different jobs through the same SDK" pattern — Qwen stays primary VLM, GPT handles complex query reasoning when deterministic can't. Out of scope: train new prompts; just route a system prompt that says "answer using only the tools, return null if you can't."
+- [ ] 1A.7 [Defer] Implement `npx reelink init` as the one-line setup flow for agent config registration. **Manual MCP registration is documented in `docs/integration-testing-runbook.md` Step 2 — that's enough for v0.1 demo. `init` is a polish item.**
+- [ ] 1A.8 [Defer] Detect and generate MCP config snippets for Codex CLI, Cursor, Claude Code, Cline/Roo, and VS Code Copilot where possible.
+- [ ] 1A.9 [Defer] Write MCP config snippets with absolute `npx` paths on Apple Silicon when required.
+- [ ] 1A.10 [Defer] Implement `reelink doctor` checks for Node version, package resolution, Playwright browser install, hosted model API key presence, and agent config.
+- [ ] 1A.11 [Defer] Ensure troubleshooting output never prints API keys or sensitive environment values.
 
 ## P1B: [Demo] Demo and Submission Path
 
-- [ ] 1B.1 Capture the founder's portfolio view-transition flicker as `demo-recordings/portfolio-view-transition.mov` and verify the Layer 0 path-only workflow against it.
+**Owner:** Harsha (manual capture + verification on the MacBook). **Status: PARTIALLY TESTABLE NOW.**
+
+- [ ] 1B.1 **[TESTABLE NOW]** Capture the founder's portfolio view-transition flicker as `demo-recordings/portfolio-view-transition.mov` and verify the Layer 0 path-only workflow against it. **Step 4 of `docs/integration-testing-runbook.md`.**
 - [ ] 1B.2 Capture the portfolio FOUC as `demo-recordings/portfolio-fouc.mov` if the primary demo needs backup material.
-- [ ] 1B.3 Verify the cached recording folder contains manifest, frames, analysis output, `streams` map, and explicit missing-stream statuses.
-- [ ] 1B.4 Verify the Reelink MCP can be invoked from a coding-agent-compatible stdio command path (Codex CLI primary).
-- [ ] 1B.5 Verify `reelink_get_finding(recording_id, "w1")` works from a coding agent against the real demo recording.
-- [ ] 1B.6 Add the Codex-native flex demo script task for `reelink/scripts/demo-codex.ts`: analyze the founder portfolio video, read `WorkItem[]`, spawn Codex parallel sub-agents on git worktrees, demonstrate App Server mid-execution injection, and end with a PR URL. If `@openai/codex-sdk` SDK integration fails, fall back to a pre-recorded parallel-worktree demo. Do not implement this in P0.
-- [ ] 1B.7 Prepare submission deliverables: 2-minute demo video, public repo, r/codex post, and Codex-native setup narrative.
+- [ ] 1B.3 **[TESTABLE NOW after 1B.1]** Verify the cached recording folder contains manifest, frames, analysis output, `streams` map, and explicit missing-stream statuses. Inspect `.reelink/<id>/` after running `reelink_analyze`.
+- [ ] 1B.4 **[TESTABLE NOW]** Verify the Reelink MCP can be invoked from a coding-agent-compatible stdio command path (Codex CLI primary). **Steps 1-7 of `docs/integration-testing-runbook.md`.** Pre-prepared: manual MCP config for `~/.codex/config.toml` documented.
+- [ ] 1B.5 **[BLOCKED on P1A.4]** Verify `reelink_get_finding(recording_id, "f1")` works from a coding agent against the real demo recording.
+- [ ] 1B.6 [Defer to v0.2 stretch] Codex-native flex demo script `reelink/scripts/demo-codex.ts`: analyze the founder portfolio video, read `WorkItem[]`, spawn Codex parallel sub-agents on git worktrees, demonstrate App Server mid-execution injection, and end with a PR URL. **Skeleton already shipped at `docs/codex-demo-script.md`. Implementation deferred — out of v0.1 critical path.**
+- [ ] 1B.7 Prepare submission deliverables: 2-minute demo video, public repo, r/codex post, and Codex-native setup narrative. **Drafts shipped at `docs/submission-pack.md`.**
 - [ ] 1B.8 Polish README/demo instructions only after the working demo path passes.
 
 ## P2: [Layer1][Observability] Layer 1 Recording State Package
@@ -112,7 +156,7 @@
 - [ ] 3.3 Store the resulting recording as eval evidence in the same folder architecture.
 - [ ] 3.4 Provide recent-frame-plus-state observations shaped as `{frame_path, dom_summary, component_map, network_since_last, console_since_last}` for next-action input.
 - [ ] 3.5 Ensure failed or partial agent runs preserve the recording and explain failure state.
-- [ ] 3.6 Defer GPT/OpenAI ToolLoopAgent query reasoning to v0.2 unless explicitly re-approved.
+- [x] 3.6 ~~Defer GPT/OpenAI ToolLoopAgent query reasoning to v0.2 unless explicitly re-approved.~~ **RE-APPROVED 2026-04-29 ~16:05 AEST: OpenAI API key available. GPT-5-class fallback for `reelink_query` re-enabled as P1A.5b stretch in v0.1 scope.**
 - [ ] 3.7 Represent recordings and agent runs as eval evidence before attempting to generate deterministic tests.
 - [ ] 3.8 Generate Playwright checks only for work items with reliable runtime/repro context.
 - [ ] 3.9 Prefer stable DOM, style, route, loading, or network invariants over brittle animation screenshot assertions.
