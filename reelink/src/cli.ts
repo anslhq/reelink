@@ -9,34 +9,80 @@ import { logger } from "./utils/logger.js";
 
 const log = logger("cli");
 
+type CommandContext = {
+  args: string[];
+  commandName: string;
+};
+
+type CommandHandler = {
+  summary: string;
+  usage: string;
+  run: (context: CommandContext) => Promise<void> | void;
+};
+
+const commandHandlers = {
+  analyze: {
+    summary: "Analyze a recording and print JSON state.",
+    usage: "reelink analyze <recording.mov> [focus]",
+    run: analyzeCommand,
+  },
+  init: {
+    summary: "Create a default Reelink config file.",
+    usage: "reelink init",
+    run: initConfig,
+  },
+  doctor: {
+    summary: "Check local Reelink configuration.",
+    usage: "reelink doctor",
+    run: doctor,
+  },
+  record: {
+    summary: "Record a browser session for later analysis.",
+    usage: "reelink record",
+    run: recordCommand,
+  },
+  mcp: {
+    summary: "Start the MCP server.",
+    usage: "reelink mcp",
+    run: startMcpServer,
+  },
+  server: {
+    summary: "Start the MCP server.",
+    usage: "reelink server",
+    run: startMcpServer,
+  },
+} satisfies Record<string, CommandHandler>;
+
+type CommandName = keyof typeof commandHandlers;
+
 async function main(): Promise<void> {
-  const [command, ...rest] = process.argv.slice(2);
+  const [command, ...args] = process.argv.slice(2);
   if (isHelpCommand(command)) {
     printHelp();
     return;
   }
 
-  const handler = commandHandlers[command];
-  if (!handler) throw new Error(`Unknown command: ${command}`);
-  await handler(rest);
+  const handler = resolveCommand(command);
+  await handler.run({ args, commandName: command });
 }
 
-const commandHandlers: Record<string, (args: string[]) => Promise<void> | void> = {
-  analyze: analyzeCommand,
-  init: initConfig,
-  doctor,
-  mcp: startMcpServer,
-  server: startMcpServer,
-};
-
-function isHelpCommand(command: string | undefined): boolean {
+function isHelpCommand(command: string | undefined): command is undefined | "help" | "--help" | "-h" {
   return !command || command === "help" || command === "--help" || command === "-h";
 }
 
-async function analyzeCommand(rest: string[]): Promise<void> {
-  const path = rest[0];
+function resolveCommand(command: string): CommandHandler {
+  if (isCommandName(command)) return commandHandlers[command];
+  throw new Error(`Unknown command: ${command}`);
+}
+
+function isCommandName(command: string): command is CommandName {
+  return Object.prototype.hasOwnProperty.call(commandHandlers, command);
+}
+
+async function analyzeCommand({ args }: CommandContext): Promise<void> {
+  const path = args[0];
   if (!path) throw new Error("Usage: reelink analyze <recording.mov> [focus]");
-  const result = await analyzeVideo({ path: resolve(path), focus: rest[1] ?? "any" });
+  const result = await analyzeVideo({ path: resolve(path), focus: args[1] ?? "any" });
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
 }
 
@@ -68,14 +114,23 @@ function doctor(): void {
   }
 }
 
+function recordCommand(): void {
+  process.stderr.write("reelink record is not implemented yet. Use your browser recorder workflow, then run `reelink analyze <recording.mov>`.\n");
+  process.exitCode = 1;
+}
+
 function printHelp(): void {
   process.stdout.write(`Reelink
 
 Usage:
-  reelink analyze <recording.mov> [focus]
-  reelink init
-  reelink doctor
-  reelink mcp
+${Object.values(commandHandlers)
+  .map((handler) => `  ${handler.usage}`)
+  .join("\n")}
+
+Commands:
+${Object.entries(commandHandlers)
+  .map(([name, handler]) => `  ${name.padEnd(8)} ${handler.summary}`)
+  .join("\n")}
 
 MCP server bin:
   reelink-mcp
