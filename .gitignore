@@ -1,3 +1,4 @@
+# Cloned reference repos (sibling read-only checkouts)
 .fallow/
 /.bt
 /agent-browser
@@ -11,3 +12,27 @@
 /react-grab
 /sentrysearch
 /typescript-sdk
+
+# Internal planning + research scratch (not for public consumption)
+BUGPACK_UNDERSTANDING_NOTES.md
+Codex Hackathon Submission.md
+HACKATHON_COMPLETION_AND_VALIDATION_EXECUTION_PLAN.md
+PHASE_PLAN.md
+RECONCILIATION_DISCREPANCIES_IN_RESEARCH.md
+STATUS_TRACKER.md
+UBIQUITOUS_LANGUAGE.md
+compass_artifact_wf-*.md
+cursor_general_chat_introduction.md
+docs/cursor-plan-*.md
+
+# Editor + agent metadata
+.cursor/
+.factory/
+.serena/
+.bt/
+.capy/
+.agents/
+skills-lock.json
+
+# Hackathon-only fallow bin override
+FALLOW_POLICY.md

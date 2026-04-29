@@ -1,0 +1,51 @@
+Reelink
+Copyright 2026 Harsha Vardhan and ANSL contributors
+
+This product includes software developed at ANSL (https://github.com/anslhq).
+
+Licensed under the Apache License, Version 2.0 (the "License").
+
+================================================================================
+Third-party software bundled or invoked by Reelink
+================================================================================
+
+bippy
+  Copyright 2024 Aiden Bai
+  Licensed under the MIT License.
+  https://github.com/aidenybai/bippy
+
+react-grab
+  Copyright 2025 Aiden Bai
+  Licensed under the MIT License.
+  https://github.com/aidenybai/react-grab
+
+Playwright
+  Copyright (c) Microsoft Corporation
+  Licensed under the Apache License, Version 2.0.
+  https://github.com/microsoft/playwright
+
+@modelcontextprotocol/sdk
+  Copyright (c) Anthropic, PBC
+  Licensed under the MIT License.
+  https://github.com/modelcontextprotocol/typescript-sdk
+
+@openrouter/ai-sdk-provider
+  Licensed under the Apache License, Version 2.0.
+  https://github.com/OpenRouterTeam/ai-sdk-provider
+
+Vercel AI SDK
+  Copyright (c) Vercel, Inc.
+  Licensed under the Apache License, Version 2.0.
+  https://github.com/vercel/ai
+
+ffmpeg-static
+  Licensed under the GPL-3.0 (binaries) and MIT (wrapper).
+  https://github.com/eugeneware/ffmpeg-static
+
+pino
+  Licensed under the MIT License.
+  https://github.com/pinojs/pino
+
+zod
+  Licensed under the MIT License.
+  https://github.com/colinhacks/zod
