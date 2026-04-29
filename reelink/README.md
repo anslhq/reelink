@@ -4,10 +4,6 @@ Coding agents are snapshot-bound. They see a single screenshot, a single DOM dum
 
 Bug findings are the first WorkItem source. Email is next.
 
-## Why this matters
-
-
-
 ## Status
 
 Pre-release. Scaffolded for OpenAI Codex Hackathon Sydney, April 29 2026. See `openspec/changes/build-reelink-mcp/` in the parent repo for the full plan.

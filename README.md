@@ -24,14 +24,11 @@ Judging rubric (verbatim from the brief):
 - **Creative / correct uses of Codex**
 
 Reelink answers the brief directly:
-- **Couldn't be built before Codex** because the demo flow requires a coding agent that reads MCP tool output, retrieves a `WorkItem` by id, and reasons over a real codebase to find the responsible file. That entire chain — agent loop + MCP + threads + computer use — is the Codex harness, not a wrapper around it. We built *on top of* the harness, exactly as the brief invited.
-- **Positive social impact** is built into the schema: anyone with a screen recorder can file an actionable WorkItem against a piece of software they couldn't otherwise debug.
+**Couldn't be built before Codex** because the demo flow requires a coding agent that reads MCP tool output, retrieves a `WorkItem` by id, and reasons over a real codebase to find the responsible file. That entire chain — agent loop + MCP + threads + computer use — is the Codex harness, not a wrapper around it. We built *on top of* the harness, exactly as the brief invited.
 
 ---
 
 ## Why this matters
-
-> ""
 
 Screen recording is the most accessible bug-reporting medium humans have. Coding agents can't natively reason over time-varying UI: motion bugs (transition flicker, FOUC, layout shift mid-animation, race conditions in optimistic updates) are invisible to a single screenshot. Reelink closes that gap with a tiny MCP server that:
 
