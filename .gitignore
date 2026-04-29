@@ -31,7 +31,6 @@ docs/cursor-plan-*.md
 .serena/
 .bt/
 .capy/
-.agents/
 .reelink/
 skills-lock.json
 
