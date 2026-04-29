@@ -5,8 +5,9 @@ The system SHALL align video frames, findings, DOM mutations, console events, ne
 
 #### Scenario: Runtime streams captured
 - **WHEN** a browser session is recorded through the Layer 1 capture path
-- **THEN** the system SHALL collect Playwright trace data, rrweb incremental DOM events, console logs, and network/HAR data where available
+- **THEN** the system SHALL collect Playwright trace data (action-aligned DOM/network/console/sources), bippy fiber commits, react-grab element-pointer events, console logs, and network/HAR data where available
 - **AND** each collected stream SHALL be associated with timestamps that can be mapped to recording time
+- **AND** the system SHALL NOT depend on rrweb for v0.1 — DOM state is derived from Playwright trace snapshots and bippy fiber commits
 
 #### Scenario: Nearest context requested
 - **WHEN** an agent requests context at a timestamp with no exact runtime event
@@ -14,12 +15,13 @@ The system SHALL align video frames, findings, DOM mutations, console events, ne
 - **AND** it SHALL identify streams that are missing or outside the requested time window
 
 ### Requirement: DOM Retrieval Tool
-The system SHALL provide timestamped DOM retrieval through `bugpack_get_dom(recording_id, ts)`.
+The system SHALL provide timestamped DOM retrieval through `reelink_get_dom(recording_id, ts)`.
 
 #### Scenario: DOM state available
-- **WHEN** `bugpack_get_dom` is called for a timestamp with rrweb-derived DOM state
+- **WHEN** `reelink_get_dom` is called for a timestamp where Playwright trace contains a snapshot at or near the requested time
 - **THEN** the system SHALL return `{path, tree_summary}`
 - **AND** the path SHALL point to an artifact containing the relevant DOM state or summary for that timestamp
+- **AND** when only fiber-commit data is available without a Playwright trace snapshot, the system MAY synthesize a tree summary from fiber topology and DOM associations rather than refusing to answer
 
 #### Scenario: DOM state unavailable
 - **WHEN** no DOM timeline exists for the recording or timestamp
@@ -27,7 +29,7 @@ The system SHALL provide timestamped DOM retrieval through `bugpack_get_dom(reco
 - **AND** it SHALL not claim that Layer 0 video analysis requires DOM context
 
 ### Requirement: Finding Detail Context
-The system SHALL provide detailed finding context through `bugpack_get_finding(recording_id, finding_id)` when supporting streams exist.
+The system SHALL provide detailed finding context through `reelink_get_finding(recording_id, finding_id)` when supporting streams exist.
 
 #### Scenario: Finding context available
 - **WHEN** a requested finding has nearby runtime evidence

@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.env
+.env.local
+*.log
+.DS_Store
+.reelink/
+*.reelink/
+demo-recordings/*.mov
+demo-recordings/*.mp4
+demo-recordings/*.webm
+!demo-recordings/.gitkeep
+.playwright-mcp/

@@ -4,7 +4,7 @@
 The system SHALL analyze arbitrary local screen recordings as Layer 0 video findings without requiring browser, source, DOM, trace, or SDK context.
 
 #### Scenario: Analyze supported recording path
-- **WHEN** a user calls `bugpack_analyze(path, fps_sample=4, focus="any")` with a valid local `.mov`, `.mp4`, or `.webm` recording
+- **WHEN** a user calls `reelink_analyze(path, fps_sample=4, focus="any")` with a valid local `.mov`, `.mp4`, or `.webm` recording
 - **THEN** the system SHALL return `{recording_id, duration_sec, summary, findings, next_steps}`
 - **AND** each finding SHALL include `id`, `ts`, `type`, `severity`, `title`, and `confidence`
 
@@ -19,12 +19,13 @@ The system SHALL analyze arbitrary local screen recordings as Layer 0 video find
 - **AND** the system SHALL include next steps such as providing a focus hint or inspecting specific timestamps
 
 ### Requirement: Deterministic Video Preprocessing
-The system SHALL preprocess recordings for model analysis using deterministic, bounded frame extraction before invoking the vision model route.
+The system SHALL preprocess recordings deterministically for cached frame retrieval and future non-primary providers, but the OpenRouter/Qwen Layer 0 path SHALL use raw video input.
 
-#### Scenario: Frame extraction for analysis
-- **WHEN** `bugpack_analyze` preprocesses a recording
+#### Scenario: Frame extraction for cached retrieval
+- **WHEN** `reelink_analyze` preprocesses a recording for cached frame access
 - **THEN** the system SHALL use `ffmpeg-static` to sample frames at the configured policy, with the MVP policy of fps=1, max 64 frames, and long edge <=896px
 - **AND** the system SHALL store sampled frame paths in the recording folder for later retrieval
+- **AND** these frames SHALL NOT be used as a silent fallback when the configured OpenRouter/Qwen model lacks raw video support
 
 #### Scenario: Caller requests fps sample
 - **WHEN** the caller provides `fps_sample`
@@ -36,12 +37,13 @@ The system SHALL expose a stable finding schema regardless of the underlying hos
 
 #### Scenario: Hosted default route
 - **WHEN** a hosted model provider is available
-- **THEN** the system SHALL route analysis through the configured OpenRouter/Qwen3-VL path by default
+- **THEN** the system SHALL route analysis through a configured OpenRouter/Qwen path whose live `input_modalities` include `video`
+- **AND** the system SHALL fail loudly instead of falling back to ordered frames when the configured Qwen route is image-only
 - **AND** the returned finding contract SHALL not expose provider-specific response shapes
 
-#### Scenario: Local fallback route
-- **WHEN** the hosted path is unavailable and a local LM Studio-compatible model endpoint is configured
-- **THEN** the system SHALL attempt the local fallback route
+#### Scenario: Last-resort self-host route
+- **WHEN** the hosted OpenRouter/Qwen raw-video path is unavailable and a self-hosted Qwen endpoint is explicitly configured
+- **THEN** the system MAY attempt a last-resort SGLang, Ollama, or Hugging Face endpoint route that preserves raw-video semantics
 - **AND** the response SHALL record provider strategy metadata for traceability without changing the tool return schema
 
 #### Scenario: Focus hint supplied

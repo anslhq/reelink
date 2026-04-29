@@ -1,17 +1,18 @@
 ## ADDED Requirements
 
 ### Requirement: Folder-Based Recording Package
-The system SHALL persist BugPack recordings as folders rather than single files so agents can query timestamp-aligned state artifacts over time.
+The system SHALL persist Reelink recordings as folders rather than single files so agents can query timestamp-aligned state artifacts over time.
 
 #### Scenario: Imported video recording created
-- **WHEN** `bugpack_analyze` imports a local recording
-- **THEN** the system SHALL create or update a recording folder under `.bugpack/<id>/` or a sibling folder such as `recording.mov.bugpack/`
+- **WHEN** `reelink_analyze` imports a local recording
+- **THEN** the system SHALL create or update a recording folder under `.reelink/<id>/` or a sibling folder such as `recording.mov.reelink/`
 - **AND** the folder SHALL contain `manifest.json`, analysis output, sampled `frames/`, and a reference or copy of the source video
 
 #### Scenario: Layer 1 captured recording created
 - **WHEN** the system records a browser session
-- **THEN** the recording folder SHALL use the canonical layout with `video.webm`, `trace.zip`, `rrweb-events.jsonl`, `fiber-commits.jsonl`, `source-dictionary.json`, `network.har`, `console.jsonl`, `manifest.json`, and `frames/` when available
+- **THEN** the recording folder SHALL use the canonical layout with `video.webm`, `trace.zip` (Playwright trace with action-aligned DOM/network/console/sources), `fiber-commits.jsonl` (bippy), `source-dictionary.json` (bippy), `react-grab-events.jsonl` (element-pointer events from the visible toolbar), `network.har`, `console.jsonl`, `manifest.json`, and `frames/` when available
 - **AND** missing optional streams SHALL be represented explicitly in the manifest
+- **AND** v0.1 SHALL NOT include `rrweb-events.jsonl`; DOM state is derived from Playwright trace snapshots plus bippy fiber commits
 
 #### Scenario: Tool responses expose paths
 - **WHEN** an MCP tool returns evidence from a recording folder
@@ -31,11 +32,21 @@ The recording package SHALL include a manifest describing inputs, artifacts, tim
 - **THEN** the manifest SHALL mark each unavailable stream as `not_collected`, `unavailable`, or `failed` with a reason when known
 - **AND** the absence of optional Layer 1 or Layer 2 context SHALL not fail Layer 0 analysis
 
+#### Scenario: Production build detected
+- **WHEN** Layer 1 fiber capture runs against a recorded app
+- **THEN** `manifest.json` SHALL include a `prod_build` boolean indicating whether bippy detected production-mode React
+- **AND** downstream tools consuming `fiber-commits.jsonl`, `source-dictionary.json`, or component findings SHALL NOT assume display names or source locations are reliable when `prod_build: true`
+
+#### Scenario: Stream availability summary
+- **WHEN** the manifest is serialized
+- **THEN** it SHALL include a `streams` map with one entry per optional Layer 1 stream (`fiber_commits`, `source_dictionary`, `react_grab_events`, `network`, `console`, `trace`, `frames`, `eval`)
+- **AND** each entry SHALL be one of `available`, `not_collected`, `unavailable`, or `failed` with an optional reason field
+
 ### Requirement: Recording Package Extensibility
 The recording folder SHALL allow later layers to append timestamp-aligned artifacts without overwriting original findings.
 
 #### Scenario: Layer 1 artifacts appended
-- **WHEN** Playwright, rrweb, bippy, network, or console capture runs after initial video analysis
+- **WHEN** Playwright, bippy, react-grab, network, or console capture runs after initial video analysis
 - **THEN** the system SHALL append the new artifacts to the existing recording folder or link a related recording folder
 - **AND** the manifest SHALL preserve original findings and record how streams were aligned
 

@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Recording as Eval Evidence
-The system SHALL treat BugPack recordings as durable eval evidence for what a user or agent observed during a browser task.
+The system SHALL treat Reelink recordings as durable eval evidence for what a user or agent observed during a browser task.
 
 #### Scenario: Recording evidence created
 - **WHEN** a video analysis, browser recording, or agent run completes
@@ -9,7 +9,7 @@ The system SHALL treat BugPack recordings as durable eval evidence for what a us
 - **AND** it SHALL make the evidence queryable by timestamp and finding ID
 
 #### Scenario: Agent recording used as evidence
-- **WHEN** `bugpack_run` creates a recording for an agent task
+- **WHEN** `reelink_run` creates a recording for an agent task
 - **THEN** the recording SHALL be usable to demonstrate what the agent attempted and observed
 - **AND** the result SHALL not depend on a deterministic test being generated
 

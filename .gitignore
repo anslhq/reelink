@@ -1,0 +1,12 @@
+.fallow/
+/.bt
+/agent-browser
+/ai
+/awesome-chrome-devtools
+/bippy
+/chrome-devtools-mcp
+/inspector
+/modelcontextprotocol
+/playwright-mcp
+/react-grab
+/typescript-sdk

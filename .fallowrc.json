@@ -1,0 +1,60 @@
+{
+  "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
+  "entry": [
+    "reelink/src/cli.ts",
+    "reelink/src/server.ts",
+    "reelink/scripts/*.ts"
+  ],
+  "ignorePatterns": [
+    "node_modules/**",
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/.reelink/**",
+    "**/.smoketest-frames/**",
+    "agent-browser/**",
+    "ai/**",
+    "awesome-chrome-devtools/**",
+    "bippy/**",
+    "chrome-devtools-mcp/**",
+    "inspector/**",
+    "modelcontextprotocol/**",
+    "playwright-mcp/**",
+    "react-grab/**",
+    "typescript-sdk/**"
+  ],
+  "workspaces": {
+    "patterns": [
+      "reelink"
+    ]
+  },
+  "ignoreDependencies": [
+    "@modelcontextprotocol/sdk"
+  ],
+  "duplicates": {
+    "enabled": true,
+    "mode": "mild",
+    "minTokens": 50,
+    "minLines": 5,
+    "threshold": 0
+  },
+  "health": {
+    "maxCyclomatic": 20,
+    "maxCognitive": 15,
+    "maxCrap": 75,
+    "suggestInlineSuppression": false
+  },
+  "rules": {
+    "unused-files": "error",
+    "unused-exports": "error",
+    "unused-types": "error",
+    "unused-dependencies": "error",
+    "unused-dev-dependencies": "warn",
+    "unresolved-imports": "error",
+    "unlisted-dependencies": "error",
+    "duplicate-exports": "error",
+    "circular-dependencies": "error",
+    "coverage-gaps": "off",
+    "feature-flags": "off",
+    "stale-suppressions": "error"
+  }
+}
