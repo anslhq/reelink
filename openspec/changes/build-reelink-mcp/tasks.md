@@ -14,12 +14,12 @@
 - [ ] 0.2.2 Add to `~/.envrc` or `.env` (gitignored) only if needed for repeated local runs. Never commit keys.
 - [x] 0.2.3 Smoke test one OpenRouter `generateText` call through AI SDK to a video-capable Qwen route.
 
-### P0.3 [Demo] Demo Recordings
+### P0.3 [Demo] Demo Requirements Lock
 
-- [ ] 0.3.1 Record the founder's portfolio view-transition flicker as `demo-recordings/portfolio-view-transition.mov` (the bug from the Granola transcript).
-- [ ] 0.3.2 Record the portfolio FOUC as `demo-recordings/portfolio-fouc.mov` (the "green overlay before main shell" bug).
-- [ ] 0.3.3 Keep synthetic Playwright fixtures for smoketests only. They are not the demo narrative.
-- [ ] 0.3.4 Each real demo recording: 6-15 seconds, QuickTime or CleanShot, 1280x720 or higher, no voiceover.
+- [x] 0.3.1 Lock the founder portfolio view-transition flicker as the primary demo target (the bug from the Granola transcript: "the words here, they are not seamless"). P0 does not require recording capture.
+- [x] 0.3.2 Lock the portfolio FOUC as the backup demo target (the "green overlay before main shell" bug). P0 does not require recording capture.
+- [x] 0.3.3 Keep synthetic Playwright fixtures for smoketests only. They are not the demo narrative.
+- [x] 0.3.4 Lock real demo recording criteria for P1B/P3 capture: 6-15 seconds, QuickTime or CleanShot, 1280x720 or higher, no voiceover.
 
 ### P0.4 [Layer0] Model-Path Smoke Test
 
@@ -40,7 +40,7 @@
 - [x] 0.6.4 Implement `src/gateway/telemetry.ts`: `telemetryFor(functionId, metadata)` returns the `experimental_telemetry` option for AI SDK v6 calls.
 - [x] 0.6.5 Verify the smoke test at `scripts/smoketest-logger.ts` emits structured JSON to stderr and confirms secret redaction in tool middleware.
 - [ ] 0.6.6 During implementation: every MCP tool handler MUST be wrapped in `withToolLogging`. Every AI SDK call MUST pass `experimental_telemetry: telemetryFor(...)`. No silent failures.
-- [ ] 0.6.7 During Layer 1 capture: write a per-recording `logs.jsonl` alongside `manifest.json` so finding-debugging has a co-located log trail.
+- [ ] 0.6.7 During Layer 1 capture: write a per-recording `logs.jsonl` alongside `manifest.json` so work-item debugging has a co-located log trail.
 - [ ] 0.6.8 Defer to v0.2: Langfuse / OpenTelemetry exporter / Sentry. The v0.1 scope is local stderr + JSONL files only.
 
 ### P0.7 [Layer0] Layer 0 Video Finding Baseline
@@ -52,7 +52,7 @@
 - [x] 0.7.5 Implement `VideoPreprocessor` with `ffmpeg-static`, fps=1 baseline, max 64 frames, and long edge <=896px. Used for cached frame retrieval and future non-primary providers, not as a silent fallback for the OpenRouter/Qwen raw-video path.
 - [x] 0.7.6 Implement `VLMRouter` on AI SDK v6: OpenRouter/Qwen raw-video route only for the primary path. Fetch `https://openrouter.ai/api/v1/models`, require the selected route's `input_modalities` to include `video`, and fail loudly for image-only Qwen routes. Structured output via `generateText` + `Output.object` so the VLM returns strict JSON in one round-trip.
 - [x] 0.7.7 Implement `reelink_analyze(path, fps_sample=4, focus="any")` for `.mov`/`.mp4`/`.webm` path-only input.
-- [x] 0.7.8 Return `{recording_id, duration_sec, summary, findings: [{id, ts, type, severity, title, confidence}], next_steps}`.
+- [x] 0.7.8 Return `{recording_id, duration_sec, summary, work_items: [{id, ts, type, severity, title, confidence}], next_steps}`.
 - [x] 0.7.9 Verify the Layer 0 raw-video smoke on `qwen/qwen3.6-flash` via OpenRouter with no frame fallback. Evidence: `.reelink/page-469cd67be477d6b3582c00140b5ca998-webm-d2c25fb94f/` from the Mac Studio smoke at commit `8d60cfa`.
 - [x] 0.7.10 Verify persistence creates `manifest.json`, `analysis.json`, `frames/`, source video reference, and a `streams` map with explicit `not_collected` reasons for Layer 1+ streams. Evidence: `.reelink/page-469cd67be477d6b3582c00140b5ca998-webm-d2c25fb94f/` from the Mac Studio smoke at commit `8d60cfa`.
 
@@ -61,8 +61,8 @@
 - [ ] 1A.1 Implement `RecordingStore` read helpers for `.reelink/<id>/` and sibling `recording.mov.reelink/` layouts: `loadAnalysis(id)`, `loadManifest(id)`, `listFrames(id)`, and `findFrameNearTimestamp(id, ts)`.
 - [ ] 1A.2 Persist or read `manifest.json`, original/imported video reference or copy, sampled frames, analysis output, and stream availability status. Manifest carries `prod_build` boolean and `streams` map per existing spec scenarios.
 - [ ] 1A.3 Implement `reelink_get_frame(recording_id, ts)` returning `{path}`.
-- [ ] 1A.4 Implement `reelink_get_finding(recording_id, finding_id)` returning description, stack when known, surrounding console, DOM diff, suggested fix, and frame paths when available.
-- [ ] 1A.5 Implement deterministic `reelink_query(recording_id, question)` over `analysis.json`, `manifest.json`, findings, summary, next_steps, and manifest streams. No GPT and no ToolLoopAgent in v0.1.
+- [ ] 1A.4 Implement `reelink_get_finding(recording_id, work_item_id)` retrieving the identified work item and returning description, stack when known, surrounding console, DOM diff, suggested fix, and frame paths when available.
+- [ ] 1A.5 Implement deterministic `reelink_query(recording_id, question)` over `analysis.json`, `manifest.json`, work_items, summary, next_steps, and manifest streams. No GPT and no ToolLoopAgent in v0.1.
 - [ ] 1A.6 Keep `reelink_get_dom(recording_id, ts)` honest before Layer 1: return `{ status: "not_collected", reason: "Layer 1 streams not present" }`; do not synthesize tree structure from frames.
 - [ ] 1A.7 Implement `npx reelink init` as the one-line setup flow for agent config registration.
 - [ ] 1A.8 Detect and generate MCP config snippets for Codex CLI, Cursor, Claude Code, Cline/Roo, and VS Code Copilot where possible.
@@ -72,12 +72,14 @@
 
 ## P1B: [Demo] Demo and Submission Path
 
-- [ ] 1B.1 Verify the Layer 0 path-only workflow on the founder's portfolio view-transition recording.
-- [ ] 1B.2 Verify the cached recording folder contains manifest, frames, analysis output, `streams` map, and explicit missing-stream statuses.
-- [ ] 1B.3 Verify the Reelink MCP can be invoked from a coding-agent-compatible stdio command path (Codex CLI primary).
-- [ ] 1B.4 Verify `reelink_get_finding(recording_id, "f1")` works from a coding agent against the real demo recording.
-- [ ] 1B.5 Prepare submission deliverables: 2-minute demo video, public repo, r/codex post, and Codex-native setup narrative.
-- [ ] 1B.6 Polish README/demo instructions only after the working demo path passes.
+- [ ] 1B.1 Capture the founder's portfolio view-transition flicker as `demo-recordings/portfolio-view-transition.mov` and verify the Layer 0 path-only workflow against it.
+- [ ] 1B.2 Capture the portfolio FOUC as `demo-recordings/portfolio-fouc.mov` if the primary demo needs backup material.
+- [ ] 1B.3 Verify the cached recording folder contains manifest, frames, analysis output, `streams` map, and explicit missing-stream statuses.
+- [ ] 1B.4 Verify the Reelink MCP can be invoked from a coding-agent-compatible stdio command path (Codex CLI primary).
+- [ ] 1B.5 Verify `reelink_get_finding(recording_id, "w1")` works from a coding agent against the real demo recording.
+- [ ] 1B.6 Add the Codex-native flex demo script task for `reelink/scripts/demo-codex.ts`: analyze the founder portfolio video, read `WorkItem[]`, spawn Codex parallel sub-agents on git worktrees, demonstrate App Server mid-execution injection, and end with a PR URL. If `@openai/codex-sdk` SDK integration fails, fall back to a pre-recorded parallel-worktree demo. Do not implement this in P0.
+- [ ] 1B.7 Prepare submission deliverables: 2-minute demo video, public repo, r/codex post, and Codex-native setup narrative.
+- [ ] 1B.8 Polish README/demo instructions only after the working demo path passes.
 
 ## P2: [Layer1][Observability] Layer 1 Recording State Package
 
@@ -93,10 +95,10 @@
 - [ ] 2.10 Merge captured streams into the recording folder with timestamp alignment recorded in `manifest.json`.
 - [ ] 2.11 Implement `reelink_get_dom(recording_id, ts)` returning `{path, tree_summary}` derived from Playwright trace snapshots plus fiber-commit topology.
 - [ ] 2.12 Implement `reelink_get_components(recording_id, ts, x?, y?)` returning `{component, file, line, props}` when available, projectable to agentation-style and react-grab-XML formats.
-- [ ] 2.13 Normalize timestamps across video frames, findings, fiber commits, react-grab events, network events, console events, and Playwright trace metadata using a shared `performance.now()` origin.
+- [ ] 2.13 Normalize timestamps across video frames, work items, fiber commits, react-grab events, network events, console events, and Playwright trace metadata using a shared `performance.now()` origin.
 - [ ] 2.14 Store time deltas and stream availability so queries can distinguish exact, nearest, and missing context.
 - [ ] 2.15 Build DOM summaries from Playwright trace snapshots plus fiber topology instead of returning large raw DOM dumps through MCP.
-- [ ] 2.16 Attach nearby console and network events to findings without embedding large HAR or trace payloads in MCP responses.
+- [ ] 2.16 Attach nearby console and network events to work items without embedding large HAR or trace payloads in MCP responses.
 - [ ] 2.17 Ensure all query tools return file paths and concise summaries rather than pixels, bytes, or unbounded logs.
 - [ ] 2.18 Use bippy directly for per-commit fiber capture; use react-grab the library headless-or-toolbar mode for element-pointer enrichment.
 - [ ] 2.19 Capture component names, source files, line numbers, props, and bounding/DOM association when available.
@@ -112,7 +114,7 @@
 - [ ] 3.5 Ensure failed or partial agent runs preserve the recording and explain failure state.
 - [ ] 3.6 Defer GPT/OpenAI ToolLoopAgent query reasoning to v0.2 unless explicitly re-approved.
 - [ ] 3.7 Represent recordings and agent runs as eval evidence before attempting to generate deterministic tests.
-- [ ] 3.8 Generate Playwright checks only for findings with reliable runtime/repro context.
+- [ ] 3.8 Generate Playwright checks only for work items with reliable runtime/repro context.
 - [ ] 3.9 Prefer stable DOM, style, route, loading, or network invariants over brittle animation screenshot assertions.
 - [ ] 3.10 Store eval artifact paths, expected pre-fix behavior, confidence, and verification results in the recording folder.
 - [ ] 3.11 Avoid making unverified benchmark or token-saving claims in generated docs or output.
