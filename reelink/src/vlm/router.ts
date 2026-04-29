@@ -100,21 +100,29 @@ export async function analyzeFramesWithVlm(input: {
     modelId: selected.modelId,
     route: selected.route,
     summary: result.output.summary,
-    workItems: result.output.findings.map((finding, index) => ({
-      id: `f${index + 1}`,
-      ts: finding.ts ?? 0,
-      type: finding.type,
-      severity: finding.severity,
-      title: finding.title,
-      confidence: finding.confidence,
-      description: finding.description,
-      state: "detected",
-      approval_state: "pending",
-      routed_to: null,
-      completed_at: null,
-      source: "video",
-      intent: "fix",
-    })),
+    workItems: result.output.findings
+      .filter((finding, index) => {
+        if (finding.ts == null) {
+          log.warn({ index, type: finding.type }, "dropping finding with null timestamp");
+          return false;
+        }
+        return true;
+      })
+      .map((finding, index) => ({
+        id: `f${index + 1}`,
+        ts: finding.ts as number,
+        type: finding.type,
+        severity: finding.severity,
+        title: finding.title,
+        confidence: finding.confidence,
+        description: finding.description,
+        state: "detected",
+        approval_state: "pending",
+        routed_to: null,
+        completed_at: null,
+        source: "video",
+        intent: "fix",
+      })),
     nextSteps: result.output.next_steps,
   };
 }
