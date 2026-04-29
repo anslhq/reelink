@@ -1,8 +1,8 @@
 // fallow-ignore-next-line unresolved-import
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
+import { registerAnalysisTools } from "./tools/analysis.js";
 import { registerDevxTools } from "./tools/devx.js";
-import { registerLayer0Tools } from "./tools/layer0.js";
 import { registerRecordingTools, registerRunTools } from "./tools/recording.js";
 import { registerQueryTools, registerRetrievalTools } from "./tools/retrieval.js";
 
@@ -12,7 +12,7 @@ export function createReelinkMcpServer(): McpServer {
     version: "0.0.0",
   });
 
-  registerLayer0Tools(server);
+  registerAnalysisTools(server);
   registerRetrievalTools(server);
   registerRecordingTools(server);
   registerQueryTools(server);

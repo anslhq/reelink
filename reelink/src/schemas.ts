@@ -1,8 +1,8 @@
 export {
   AnalyzeArgsSchema,
   AnalyzeResultSchema,
-  FindingSchema,
+  WorkItemSchema,
   type AnalyzeResult,
-  type Finding,
+  type WorkItem,
 } from "./schemas/layer0.js";
 export { ManifestSchema, StreamStatusSchema, type Manifest } from "./schemas/recording.js";

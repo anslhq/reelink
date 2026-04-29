@@ -2,7 +2,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod/v4";
 
-import { registerUnavailableTool } from "./shared.js";
+import { registerUnavailableTool } from "./_helpers.js";
 
 export function registerRecordingTools(server: McpServer): void {
   registerUnavailableTool(server, "reelink_get_dom", {

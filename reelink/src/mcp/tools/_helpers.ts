@@ -9,7 +9,7 @@ export function registerUnavailableTool(server: McpServer, name: string, inputSc
     name,
     {
       title: name,
-      description: `${name} is planned in the OpenSpec change but not implemented in the current Layer 0 slice.`,
+      description: `${name} is planned in the OpenSpec change but not implemented in the current analysis tool set.`,
       inputSchema,
       outputSchema: {
         status: z.literal("not_implemented"),
@@ -23,7 +23,7 @@ export function registerUnavailableTool(server: McpServer, name: string, inputSc
     withToolLogging(name, async () => {
       const structuredContent = {
         status: "not_implemented" as const,
-        message: `${name} is not implemented yet. Run reelink_analyze for the Layer 0 video-to-findings workflow.`,
+        message: `${name} is not implemented yet. Run reelink_analyze for the analysis video-to-work-items workflow.`,
       };
       return {
         content: [{ type: "text", text: structuredContent.message }],

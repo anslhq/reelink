@@ -6,7 +6,7 @@ import { z } from "zod/v4";
 
 import type { ReelinkConfig } from "../config/env.js";
 import { telemetryFor } from "../gateway/telemetry.js";
-import type { Finding } from "../schemas.js";
+import type { WorkItem } from "../schemas.js";
 import { logger } from "../utils/logger.js";
 
 const log = logger("vlm-router");
@@ -31,7 +31,7 @@ type VlmAnalysis = {
   modelId: string;
   route: string;
   summary: string;
-  findings: Finding[];
+  workItems: WorkItem[];
   nextSteps: string[];
 };
 
@@ -53,7 +53,7 @@ export async function analyzeFramesWithVlm(input: {
       modelId: "none",
       route: "unavailable",
       summary: "Model analysis was not run because OPENROUTER_API_KEY is not configured.",
-      findings: [],
+      workItems: [],
       nextSteps: [
         "Set OPENROUTER_API_KEY for OpenRouter-hosted VL analysis.",
         "Use a Qwen route that supports video input for raw-video analysis.",
@@ -100,7 +100,7 @@ export async function analyzeFramesWithVlm(input: {
     modelId: selected.modelId,
     route: selected.route,
     summary: result.output.summary,
-    findings: result.output.findings.map((finding, index) => ({
+    workItems: result.output.findings.map((finding, index) => ({
       id: `f${index + 1}`,
       ts: finding.ts ?? 0,
       type: finding.type,
@@ -108,6 +108,12 @@ export async function analyzeFramesWithVlm(input: {
       title: finding.title,
       confidence: finding.confidence,
       description: finding.description,
+      state: "detected",
+      approval_state: "pending",
+      routed_to: null,
+      completed_at: null,
+      source: "video",
+      intent: "fix",
     })),
     nextSteps: result.output.next_steps,
   };

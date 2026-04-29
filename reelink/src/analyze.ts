@@ -26,7 +26,7 @@ export async function analyzeVideo(rawArgs: unknown): Promise<AnalyzeResult> {
     recording_id: recording.id,
     duration_sec: preprocessed.durationSec,
     summary: analysis.summary,
-    findings: analysis.findings,
+    work_items: analysis.workItems,
     next_steps: analysis.nextSteps,
   };
 
