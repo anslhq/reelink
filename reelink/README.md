@@ -1,8 +1,12 @@
-# Reelink
+Reelink — temporal memory for coding agents.
 
-> Video-as-state for AI browser agents. Re-link a recording's frames to your code's runtime state at any timestamp.
+Coding agents are snapshot-bound. They see a single screenshot, a single DOM dump, a single tool call. Reelink turns screen recordings into queryable, timestamped WorkItems that Codex (and any MCP-aware agent) can cite, retrieve, and act on across time.
 
-Reelink is a single-MCP gateway plus CLI for AI coding agents (Codex, Cursor, Claude Code, Cline, Roo, VS Code Copilot). It turns screen recordings and agent browser sessions into timestamp-aligned state packages — video plus Playwright trace plus bippy fiber commits plus react-grab element-pointer events plus network HAR plus console JSONL — and analyzes them with Qwen3-VL through AI SDK provider routing.
+Bug findings are the first WorkItem source. Email is next.
+
+## Why this matters
+
+
 
 ## Status
 
