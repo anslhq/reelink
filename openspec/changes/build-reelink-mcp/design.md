@@ -21,6 +21,7 @@ The wedge is still simple: arbitrary video path to structured findings. The thes
 - Do not make Gemini the primary model path; it may be used only as benchmark/reference/fallback context if mentioned.
 - Do not overclaim exact token savings or benchmark numbers as requirements.
 - Do not require every recording to contain every Layer 1 artifact; absent streams must be explicit in the manifest.
+- Synthetic Playwright fixtures are smoketest fixtures only; the demo recording should be the founder's portfolio view-transition bug.
 - v0.1 does not provide a `reelink_attach_live(url)` MCP tool for opening a Playwright browser with optional third-party annotation tools injected. This is researched and queued for v0.2 contingent on optional peer-dependency relationships maturing.
 - v0.1 does not bundle agentation. agentation's PolyForm Shield 1.0.0 license, integration patterns, and peer-detect approach have been researched (see project dossier) and parked for v0.2 pending direct outreach to the agentation maintainer.
 
@@ -111,12 +112,12 @@ In addition, Reelink forwards a curated subset of browser-automation tools from 
 Internal modules should include:
 
 - `VideoPreprocessor`: `ffmpeg-static`, fps=1 baseline, max 64 frames, long edge <=896px. Used for cached frame retrieval and future non-primary providers, not as a silent fallback for OpenRouter/Qwen raw-video analysis.
-- `VLMRouter`: AI SDK v6 client. The primary OpenRouter/Qwen path sends raw video via AI SDK file parts and validates the selected route against OpenRouter's live `input_modalities`. Image-only Qwen routes or unknown support fail loudly. Same tool surface and response schema across model routes. Structured output through `generateText` + `Output.object` is enabled so the model returns strict JSON without a downstream normalizer.
+- `VLMRouter`: AI SDK v6 client. The primary OpenRouter/Qwen path defaults to `qwen/qwen3.6-flash`, verified on Apr 29 2026 via OpenRouter live catalog with `text,image,video` input modalities and an end-to-end raw-video smoke. It sends raw video via AI SDK file parts and validates the selected route against OpenRouter's live `input_modalities`. Image-only Qwen routes or unknown support fail loudly. Same tool surface and response schema across model routes. Structured output through `generateText` + `Output.object` is enabled so the model returns strict JSON without a downstream normalizer.
 - `RecordingStore`: `.reelink/<id>/` and sibling `recording.mov.reelink/` folder layouts.
 - `PlaywrightLibraryHarness`: Layer 1 recording and Layer 2 agent-run browser control. Uses Playwright the library directly, NOT Playwright MCP. Owns `addInitScript` ordering for bippy injection.
 - Init scripts (in addInitScript order): bippy `install-hook-only` first, then full bippy + react-grab the library + per-commit recorder. react-grab is injected in normal mode (toolbar visible).
 
-Qwen through OpenRouter's AI SDK provider is the primary raw-video VLM path. AI Gateway is used for gateway-listed models, especially the OpenAI GPT-5 family behind the internal `reelink_query` ToolLoopAgent (see Decision 11). Self-hosted Qwen via SGLang, Ollama, or Hugging Face endpoints is a last-resort fallback if OpenRouter video routing becomes unavailable. The result schema does not depend on any provider. Gemini may be used as a reference benchmark only, never as a default code path.
+`qwen/qwen3.6-flash` through OpenRouter's AI SDK provider is the primary raw-video VLM path for v0.1. This intentionally supersedes the earlier research-era `qwen/qwen3-vl-30b-a3b-instruct` default because that route is text+image only on OpenRouter, while the Qwen 3.6 routes expose video. Frame extraction is reserved for cached retrieval and explicitly labeled non-primary providers; it must not become a silent fallback on the primary path. Self-hosted Qwen via SGLang, Ollama, or Hugging Face endpoints is a last-resort fallback if OpenRouter video routing becomes unavailable. The result schema does not depend on any provider. Gemini may be used as a reference benchmark only, never as a default code path.
 
 ### Decision 4: Timestamp alignment is the architectural unlock
 
@@ -183,21 +184,19 @@ Structured output is implemented with `generateText` + `Output.object`. Qwen ret
 
 Per the AI SDK skill: do not hardcode gateway model IDs in source — fetch the current set from `https://ai-gateway.vercel.sh/v1/models` and select the highest-versioned model in the family at call time. For OpenRouter-only VLMs, fetch `https://openrouter.ai/api/v1/models` and prefer configured models first, then the current Qwen3-VL family.
 
-### Decision 11: Internal `reelink_query` ToolLoopAgent for cross-recording reasoning
+### Decision 11: Deterministic v0.1 query; ToolLoopAgent deferred
 
-`reelink_query(recording_id, question)` and the broader cross-recording / cross-bug reasoning surface are implemented internally as an AI SDK v6 `ToolLoopAgent` backed by an OpenAI GPT-5-class model via AI Gateway. The internal agent has access to Reelink's PRIVATE tool surface — internal versions of `get_dom`, `get_components`, `get_frame`, `list_recordings`, `search_findings`, etc. — that are NOT exposed to the parent coding agent.
+`reelink_query(recording_id, question)` is deterministic in v0.1. It answers only from `analysis.json`, `manifest.json`, findings, summary, next_steps, and manifest stream availability. If the question does not match deterministic patterns, it returns `{ answer: null, reason: "deterministic v0.1 cannot answer; record more streams or upgrade" }`.
 
-Boundary: simple per-recording or per-bug lookup → parent coding agent calls top-level `reelink_*` tools directly. Complex multi-recording or multi-bug reasoning → parent calls `reelink_query` with a natural-language question; the internal sub-agent loops through the private tools and returns a single synthesized answer. Parent saves tokens because it does not see the intermediate tool calls.
+No GPT, OpenAI, or ToolLoopAgent path is part of the v0.1 primary implementation. Cross-recording and LLM-backed private-tool reasoning is v0.2+ future work unless explicitly re-approved.
 
-Rationale: this is the Codex-hackathon angle for OpenAI usage — we use an OpenAI model where it is genuinely better than Qwen (text-heavy reasoning over recording metadata and findings) without compromising the open-model thesis (Qwen remains primary VLM for raw video). The two providers do different jobs through the same AI Gateway.
+## Current Implementation Order
 
-## Hackathon Build Order
-
-- Hours 0-1.5: Layer 0 minimum must ship: TypeScript MCP scaffold on raw `@modelcontextprotocol/sdk`, AI SDK v6 model router, `reelink_analyze`, raw-video Qwen via OpenRouter with live `input_modalities` gating and structured-output JSON enforcement, cached frame extraction for retrieval, Codex MCP config, and one demoable video-to-finding flow on a portfolio recording.
-- Hours 1.5-3: Add `reelink_get_frame`, native browser tools forwarded from a spawned Playwright MCP child via CDP attach (`reelink_browser_navigate` etc.), cached recording folders, tool annotations, validate four demo bugs.
-- Hours 3-5: Layer 1: `npx reelink record <url>` headed Playwright session, bippy install-hook-only injected first via `addInitScript`, full bippy + react-grab library injected after with toolbar visible, Playwright trace + network HAR + console JSONL captured, folder merged with timestamp alignment in manifest, `reelink_get_dom` and `reelink_get_components` exposed.
-- Hours 5-6: Add Layer 2 if time: `reelink_run` with the recording as eval evidence and next-action input. Optionally wire `reelink_query` as an internal ToolLoopAgent (Decision 11) — defer to v0.2 if Layer 1 is wobbly.
-- Final polish: README/demo script and agent config instructions after the working demo path is stable.
+- **P0: architecture lock and verified Layer 0 baseline.** Keep OpenSpec aligned with the verified raw-video `qwen/qwen3.6-flash` path, preserve the Bun/TypeScript toolchain, and keep Layer 0 smoke evidence reproducible.
+- **P1A: deterministic retrieval and DevX.** Implement `RecordingStore` read helpers plus `reelink_get_frame`, `reelink_get_finding`, and deterministic `reelink_query` before browser gateway work. `reelink_get_dom` returns `not_collected` until Layer 1 streams exist.
+- **P1B: demo and submission path.** Use the founder portfolio recording as the demo artifact; synthetic Playwright fixtures remain smoke-only.
+- **P2: Layer 1 recording state package.** Add browser gateway, Playwright-library recording, bippy/react-grab capture, and timestamp-aligned DOM/component retrieval.
+- **P3: Layer 2, eval evidence, and post-v0.1 hardening.** Add agent self-recording, deterministic eval artifacts where reliable, and optional LLM-backed query only after explicit re-approval.
 
 ## Risks / Trade-offs
 
@@ -209,42 +208,15 @@ Rationale: this is the Codex-hackathon angle for OpenAI usage — we use an Open
 - Browser traces, HARs, and console logs can contain secrets -> Mitigation: redact/omit sensitive headers and tokens, never store API keys in config, and summarize before exposing large artifacts.
 - Token savings claims are easy to overstate -> Mitigation: describe the qualitative bottleneck and avoid normative benchmark claims until measured.
 
-## Risk Management and Pre-Hackathon Plan
+## Current Risk Management
 
-The hackathon doors open at 9:50 AM Sydney on April 29, 2026 with a 6.5-hour build window. Multimodal Intelligence track is locked, but the exact day-of prompt or theme may shift. To insulate against day-of scope drift, work is split into two phases:
+The immediate risk is scope drift away from the verified wedge. Layer 0 raw-video analysis is already proven on a Playwright-generated fixture, so the next required work is deterministic retrieval over persisted artifacts and a real founder-portfolio demo. Browser gateway, Layer 1 capture, Layer 2 agent recording, and LLM-backed query are valuable but must not block v0.1 submission.
 
-### Pre-hackathon (TONIGHT, Apr 28)
+### Hard Non-Starters
 
-Tonight's work is SETUP ONLY — no Reelink core logic written. Everything tonight survives any plausible scope shift:
-
-- Repository scaffold and dependency install (Section 0.1 of tasks.md).
-- API key provisioning for AI Gateway, OpenRouter, OpenAI (Section 0.2).
-- Demo recordings: portfolio view-transition flicker, FOUC, plus three sample-app backups (Section 0.3). Most scope-resilient artifact — every plausible track direction needs demo material.
-- Sample buggy app: Vite + React 18 with four bug branches (Section 0.4).
-- Codex CLI verification (Section 0.5).
-- Pre-staged agent configs ready to uncomment (Section 0.6).
-- Model-path smoke test through AI SDK to confirm a VLM responds with strict JSON (Section 0.7).
-- OpenSpec workflow refresh (Section 0.8).
-- Final hardware / wifi / disk checks (Section 0.9).
-
-### During-hackathon (Apr 29, 9:50 AM onward)
-
-All Reelink core logic happens here. Sections 1-9 of tasks.md execute in build-order. If the day-of scope shift requires reframing, the existing sections still constitute the foundation.
-
-### Hedge plans by scope-shift direction
-
-| Day-of theme shift | Reelink adaptation |
-| --- | --- |
-| Generic multimodal video-to-text | Layer 0 wedge wins as-is; emphasize `reelink_analyze` returning structured findings. |
-| Codex agentic workflow | Promote Layer 2 (`reelink_run`) and the internal ToolLoopAgent (Decision 11) to the demo lead. |
-| Knowledge graph / RAG | Frame Reelink as a recording-knowledge-base; demo cross-recording querying via `reelink_query`. |
-| Live agent automation | Layer 2 + the gateway-pattern Playwright MCP forwarding becomes the centerpiece — agent drives the browser through `reelink_browser_*` tools while recording captures everything. |
-
-In all four directions, tonight's setup work is reusable. Only the building happens day-of.
-
-### Hard non-starters even on day-of pivot
-
-- Do not switch the language to Python tomorrow morning. The TypeScript decision (Decision 1) is locked. If a day-of theme requires Python, frame Reelink as the TypeScript companion to a Python deliverable, do not rewrite.
-- Do not reintroduce rrweb. Decision 4 explicitly drops it; Playwright trace plus bippy plus react-grab covers the runtime timeline.
-- Do not split the MCP into multiple registered servers. Decision 9's gateway pattern is non-negotiable — single reelink registered, Playwright MCP spawned as child via CDP attach.
+- Do not switch the language away from TypeScript/Bun.
+- Do not reintroduce rrweb. Decision 4 explicitly drops it; Playwright trace plus bippy plus react-grab covers the later runtime timeline.
+- Do not split the MCP into multiple registered servers. Decision 9's gateway pattern remains single `reelink` registered, Playwright MCP spawned as child via CDP attach if/when Layer 1/2 happens.
 - Do not bundle agentation. Decision 5 + Non-Goals park it for v0.2 pending Benji Taylor blessing.
+- Do not silently fall back to frame extraction on the primary VLM path.
+- Do not synthesize DOM structure from Layer 0 frames; return `not_collected` until Layer 1 streams exist.
