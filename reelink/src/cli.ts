@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, renameSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
+import { stdin as input } from "node:process";
 
 import { analyzeVideo } from "./analyze.js";
 import { loadConfig } from "./config/env.js";
@@ -37,8 +38,8 @@ const commandHandlers = {
     run: doctor,
   },
   record: {
-    summary: "Record a browser session for later analysis.",
-    usage: "reelink record",
+    summary: "Open a Chromium window at <url>, record video until ENTER or Ctrl+C.",
+    usage: "reelink record <url> [--out path.webm] [--max-seconds 60]",
     run: recordCommand,
   },
   mcp: {
@@ -114,9 +115,73 @@ function doctor(): void {
   }
 }
 
-function recordCommand(): void {
-  process.stderr.write("reelink record is not implemented yet. Use your browser recorder workflow, then run `reelink analyze <recording.mov>`.\n");
-  process.exitCode = 1;
+type RecordOptions = { url: string; outPath: string; maxSeconds: number };
+
+function parseRecordArgs(args: string[]): RecordOptions {
+  const url = args.find((arg) => !arg.startsWith("--"));
+  if (!url) throw new Error("Usage: reelink record <url> [--out path.webm] [--max-seconds 60]");
+  const outArg = args[args.indexOf("--out") + 1];
+  const maxArg = args[args.indexOf("--max-seconds") + 1];
+  const outPath = args.includes("--out") && outArg ? resolve(outArg) : resolve(`demo-recordings/reelink-${Date.now()}.webm`);
+  const maxSeconds = args.includes("--max-seconds") && maxArg ? Number(maxArg) : 60;
+  if (!Number.isFinite(maxSeconds) || maxSeconds <= 0) throw new Error("--max-seconds must be a positive number");
+  return { url, outPath, maxSeconds };
+}
+
+function waitForStop(maxSeconds: number): Promise<void> {
+  return new Promise((done) => {
+    const finish = () => {
+      input.removeAllListeners("data");
+      clearTimeout(timer);
+      done();
+    };
+    const timer = setTimeout(() => {
+      process.stderr.write(`reelink record: hit ${maxSeconds}s cap, stopping.\n`);
+      finish();
+    }, maxSeconds * 1000);
+    process.once("SIGINT", () => {
+      process.stderr.write("\nreelink record: SIGINT received, stopping.\n");
+      finish();
+    });
+    input.resume();
+    input.setEncoding("utf8");
+    input.once("data", () => {
+      process.stderr.write("reelink record: ENTER received, stopping.\n");
+      finish();
+    });
+  });
+}
+
+async function recordCommand({ args }: CommandContext): Promise<void> {
+  const { url, outPath, maxSeconds } = parseRecordArgs(args);
+  const recDir = resolve("demo-recordings");
+  mkdirSync(recDir, { recursive: true });
+  mkdirSync(resolve(outPath, ".."), { recursive: true });
+
+  const { chromium } = await import("playwright");
+  const browser = await chromium.launch({ headless: false });
+  const context = await browser.newContext({
+    viewport: { width: 1280, height: 720 },
+    recordVideo: { dir: recDir, size: { width: 1280, height: 720 } },
+  });
+  const page = await context.newPage();
+  process.stderr.write(`reelink record: opening ${url}\n`);
+  await page.goto(url, { waitUntil: "domcontentloaded" }).catch((err) => {
+    process.stderr.write(`reelink record: nav warning: ${err instanceof Error ? err.message : String(err)}\n`);
+  });
+
+  process.stderr.write(`reelink record: capturing. Reproduce the bug, then ENTER (or Ctrl+C). Auto-stops after ${maxSeconds}s.\n`);
+  await waitForStop(maxSeconds);
+
+  const video = page.video();
+  await context.close();
+  await browser.close();
+
+  const tmpPath = await video?.path();
+  if (!tmpPath || !existsSync(tmpPath)) throw new Error("Playwright did not write a video artifact");
+  renameSync(tmpPath, outPath);
+  process.stderr.write(`reelink record: saved ${outPath}\n`);
+  process.stdout.write(`${outPath}\n`);
 }
 
 function printHelp(): void {
