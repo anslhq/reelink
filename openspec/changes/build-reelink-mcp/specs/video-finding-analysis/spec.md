@@ -1,5 +1,19 @@
 ## ADDED Requirements
 
+### Requirement: Codex-as-Client Onboarding Flow
+The system SHALL provide a paste-ready Codex setup prompt (`docs/setup-prompt.md`) and an operator-mode integration runbook (`docs/integration-testing-runbook.md`) that together make Codex CLI the canonical v0.1 testing client.
+
+#### Scenario: Setup prompt registers Reelink in Codex
+- **WHEN** a user pastes `docs/setup-prompt.md` into a Codex session opened in their target repo
+- **THEN** the Codex agent SHALL verify Reelink builds (`bun run typecheck` exits 0), write a `[mcp_servers.reelink]` block into `~/.codex/config.toml` with absolute bun path, verify `codex mcp list` shows `reelink` running, prompt the user for a recording path, and call `reelink_analyze` with that path while surfacing the full JSON response
+- **AND** the agent SHALL NOT embed the OpenRouter API key anywhere except the `mcp_servers.reelink.env` block
+- **AND** the agent SHALL surface a configuration diff for user approval before writing `~/.codex/config.toml`
+
+#### Scenario: Integration runbook supports manual onboarding
+- **WHEN** a user prefers manual configuration over the agentic setup prompt
+- **THEN** `docs/integration-testing-runbook.md` SHALL document each step (verify build, write MCP config, register, record bug, run analyze, verify schema) with explicit commands, success criteria, and failure-mode remediation
+- **AND** the runbook SHALL specify Codex as the primary client and Cursor as an alternative footnote
+
 ### Requirement: Path-Only Video Finding Analysis
 The system SHALL analyze arbitrary local screen recordings as Layer 0 video findings without requiring browser, source, DOM, trace, or SDK context.
 

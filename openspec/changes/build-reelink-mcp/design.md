@@ -190,7 +190,16 @@ Per the AI SDK skill: do not hardcode gateway model IDs in source — fetch the 
 
 `reelink_query(recording_id, question)` is deterministic in v0.1. It answers only from `analysis.json`, `manifest.json`, findings, summary, next_steps, and manifest stream availability. If the question does not match deterministic patterns, it returns `{ answer: null, reason: "deterministic v0.1 cannot answer; record more streams or upgrade" }`.
 
-No GPT, OpenAI, or ToolLoopAgent path is part of the v0.1 primary implementation. Cross-recording and LLM-backed private-tool reasoning is v0.2+ future work unless explicitly re-approved.
+No GPT, OpenAI, or ToolLoopAgent path is part of the v0.1 primary implementation. Cross-recording and LLM-backed private-tool reasoning is v0.2+ future work — the API key constraint is now lifted (key available 2026-04-29 ~16:05 AEST), but submission timing keeps the implementation deferred. See `tasks.md` P1A.5b stretch item.
+
+### Decision 12: Codex-as-client setup flow
+
+The end-user testing client for v0.1 is Codex (CLI or desktop app), not Cursor or Claude Code. Reelink ships two on-disk artifacts to make the integration loop concrete and reproducible without touching `reelink/src/`:
+
+- `docs/setup-prompt.md` — paste-ready prompt that, when dropped into a Codex session, makes the Codex agent autonomously: (1) verify Reelink builds, (2) write a `[mcp_servers.reelink]` block into `~/.codex/config.toml` referencing `bun run /Users/harsha/Developer/hackathon/reelink/src/cli.ts mcp` with absolute bun path, (3) restart the MCP host, (4) confirm `codex mcp list` shows reelink running, (5) call `reelink_analyze` against a user-provided recording path, (6) validate the returned `WorkItem[]` schema fields, (7) exercise retrieval tools when available, and (8) report end-to-end status.
+- `docs/integration-testing-runbook.md` — operator-mode manual runbook covering the same flow step-by-step for cases where the user prefers manual configuration or needs to debug a step the agent cannot.
+
+Both files reference Codex CLI explicitly. Cursor MCP config is mentioned only as an alternative footnote in the runbook; the canonical demo path is Codex. This decision pairs with Decision 6 (DevX as product surface): until `reelink init` ships a Codex-aware auto-detector, the setup-prompt is the recommended onboarding mechanism.
 
 ## Current Implementation Order
 
