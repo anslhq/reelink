@@ -1,6 +1,6 @@
-## P0: Architecture Lock and Verified Layer 0 Baseline
+## P0: [Arch][Layer0] Architecture Lock and Verified Layer 0 Baseline
 
-### P0.1 Repository Scaffold
+### P0.1 [Arch] Repository Scaffold
 
 - [x] 0.1.1 Initialize Node 20+ TypeScript package: `package.json` with `"type": "module"`, `tsconfig.json` strict mode, `.gitignore`, `.envrc`/`.env.example`, `README.md` skeleton.
 - [x] 0.1.2 Install direct dependencies: `@modelcontextprotocol/sdk`, `ai` (v6), `@openrouter/ai-sdk-provider`, `playwright`, `ffmpeg-static`, `react-grab`, `zod`, `pino`, `pino-pretty`. Dev deps: `@types/node`, `@types/bun`, `typescript`. Do NOT install `rrweb` (dropped per Decision 4).
@@ -8,31 +8,31 @@
 - [x] 0.1.4 Verify `ffmpeg-static` binary downloads cleanly and is executable.
 - [x] 0.1.5 Run a TypeScript type-check pass to confirm all imports resolve.
 
-### P0.2 API Key Provisioning (env-only)
+### P0.2 [Arch] API Key Provisioning (env-only)
 
 - [x] 0.2.1 Provision `OPENROUTER_API_KEY` for current testing. Do not use OpenAI/GPT models in the v0.1 primary path.
 - [ ] 0.2.2 Add to `~/.envrc` or `.env` (gitignored) only if needed for repeated local runs. Never commit keys.
 - [x] 0.2.3 Smoke test one OpenRouter `generateText` call through AI SDK to a video-capable Qwen route.
 
-### P0.3 Demo Recordings
+### P0.3 [Demo] Demo Recordings
 
 - [ ] 0.3.1 Record the founder's portfolio view-transition flicker as `demo-recordings/portfolio-view-transition.mov` (the bug from the Granola transcript).
 - [ ] 0.3.2 Record the portfolio FOUC as `demo-recordings/portfolio-fouc.mov` (the "green overlay before main shell" bug).
 - [ ] 0.3.3 Keep synthetic Playwright fixtures for smoketests only. They are not the demo narrative.
 - [ ] 0.3.4 Each real demo recording: 6-15 seconds, QuickTime or CleanShot, 1280x720 or higher, no voiceover.
 
-### P0.4 Model-Path Smoke Test
+### P0.4 [Layer0] Model-Path Smoke Test
 
 - [x] 0.4.1 Hand-craft one AI SDK call: pass a raw `.mov`/`.webm` recording directly to a video-capable OpenRouter Qwen route with a structured-output JSON schema enforcing `{bug_detected: bool, ts: number, type: string, description: string}`.
 - [x] 0.4.2 Verify the response parses as strict JSON in one round-trip.
 - [x] 0.4.3 Verify native video input against OpenRouter's live model catalog. `qwen/qwen3-vl-30b-a3b-instruct` is text+image only and MUST fail for raw video; default to `qwen/qwen3.6-flash` or another Qwen route whose `input_modalities` includes `video`.
 
-### P0.5 OpenSpec Workflow Refresh
+### P0.5 [Arch] OpenSpec Workflow Refresh
 
 - [x] 0.5.1 Read `openspec --help` once to internalize the CLI surface (status, list, show, validate, instructions, archive, sync, view).
 - [x] 0.5.2 Verify `openspec validate build-reelink-mcp` returns clean. Confirm artifacts complete via `openspec status --change build-reelink-mcp`.
 
-### P0.6 Observability Scaffold
+### P0.6 [Observability] Observability Scaffold
 
 - [x] 0.6.1 Install `pino` plus `pino-pretty` as direct dependencies. Pino is the structured JSON logger; pino-pretty is dev-only readable output.
 - [x] 0.6.2 Implement `src/utils/logger.ts`: stdio MCP forbids stdout writes (corrupts JSON-RPC), so all logs go to stderr. `REELINK_LOG_PRETTY=1` switches to pino-pretty transport in dev. `REELINK_LOG_LEVEL` controls verbosity.
@@ -43,7 +43,7 @@
 - [ ] 0.6.7 During Layer 1 capture: write a per-recording `logs.jsonl` alongside `manifest.json` so finding-debugging has a co-located log trail.
 - [ ] 0.6.8 Defer to v0.2: Langfuse / OpenTelemetry exporter / Sentry. The v0.1 scope is local stderr + JSONL files only.
 
-### P0.7 Layer 0 Video Finding Baseline
+### P0.7 [Layer0] Layer 0 Video Finding Baseline
 
 - [x] 0.7.1 Create the Node 20+ TypeScript package scaffold runnable by `npx -y reelink`. Use raw `@modelcontextprotocol/sdk`.
 - [x] 0.7.2 Add the stdio MCP server entry point with `reelink_*` tool names and path-oriented returns.
@@ -56,7 +56,7 @@
 - [x] 0.7.9 Verify the Layer 0 raw-video smoke on `qwen/qwen3.6-flash` via OpenRouter with no frame fallback. Evidence: `.reelink/page-469cd67be477d6b3582c00140b5ca998-webm-d2c25fb94f/` from the Mac Studio smoke at commit `8d60cfa`.
 - [x] 0.7.10 Verify persistence creates `manifest.json`, `analysis.json`, `frames/`, source video reference, and a `streams` map with explicit `not_collected` reasons for Layer 1+ streams. Evidence: `.reelink/page-469cd67be477d6b3582c00140b5ca998-webm-d2c25fb94f/` from the Mac Studio smoke at commit `8d60cfa`.
 
-## P1A: Deterministic Retrieval and DevX
+## P1A: [Retrieval][DevX] Deterministic Retrieval and DevX
 
 - [ ] 1A.1 Implement `RecordingStore` read helpers for `.reelink/<id>/` and sibling `recording.mov.reelink/` layouts: `loadAnalysis(id)`, `loadManifest(id)`, `listFrames(id)`, and `findFrameNearTimestamp(id, ts)`.
 - [ ] 1A.2 Persist or read `manifest.json`, original/imported video reference or copy, sampled frames, analysis output, and stream availability status. Manifest carries `prod_build` boolean and `streams` map per existing spec scenarios.
@@ -70,7 +70,7 @@
 - [ ] 1A.10 Implement `reelink doctor` checks for Node version, package resolution, Playwright browser install, hosted model API key presence, and agent config.
 - [ ] 1A.11 Ensure troubleshooting output never prints API keys or sensitive environment values.
 
-## P1B: Demo and Submission Path
+## P1B: [Demo] Demo and Submission Path
 
 - [ ] 1B.1 Verify the Layer 0 path-only workflow on the founder's portfolio view-transition recording.
 - [ ] 1B.2 Verify the cached recording folder contains manifest, frames, analysis output, `streams` map, and explicit missing-stream statuses.
@@ -79,7 +79,7 @@
 - [ ] 1B.5 Prepare submission deliverables: 2-minute demo video, public repo, r/codex post, and Codex-native setup narrative.
 - [ ] 1B.6 Polish README/demo instructions only after the working demo path passes.
 
-## P2: Layer 1 Recording State Package
+## P2: [Layer1][Observability] Layer 1 Recording State Package
 
 - [ ] 2.1 Implement the MCP gateway pattern (Decision 9): spawn Playwright MCP as a child stdio subprocess, attach it to Reelink's launched Chromium via `--cdp-endpoint`, list its tools via the MCP client SDK.
 - [ ] 2.2 Forward a curated subset of Playwright MCP tools with `reelink_browser_*` prefix: `reelink_browser_navigate`, `reelink_browser_click`, `reelink_browser_type`, `reelink_browser_evaluate`, `reelink_browser_snapshot`, `reelink_browser_take_screenshot`. Do NOT forward video / trace tools (Reelink-native owns recording).
@@ -103,7 +103,7 @@
 - [ ] 2.20 `secure()` wrapping is mandatory; set `dangerouslyRunInProduction: true` only when explicitly recording a prod build.
 - [ ] 2.21 Degrade gracefully to DOM-only context when React, source maps, development mode, or compatible internals are unavailable. Mark source-map stream status and failure reasons in `manifest.json`.
 
-## P3: Layer 2, Eval Evidence, and Post-v0.1 Hardening
+## P3: [Layer2][Observability] Layer 2, Eval Evidence, and Post-v0.1 Hardening
 
 - [ ] 3.1 Implement `PlaywrightLibraryHarness` for agent-controlled browser task recording.
 - [ ] 3.2 Implement `reelink_run(task_description, target_url)` returning `{recording_id, success, summary}`.
