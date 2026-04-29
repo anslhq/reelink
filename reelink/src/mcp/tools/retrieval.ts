@@ -1,6 +1,7 @@
 // fallow-ignore-next-line unresolved-import
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { join, resolve } from "node:path";
 import { z } from "zod/v4";
 
 import {
@@ -29,6 +30,10 @@ const PATTERN_IDS = [
   "prod_build",
   "finding_by_id",
   "recording_duration",
+  "browser_artifacts",
+  "browser_console",
+  "browser_network",
+  "browser_dom",
 ] as const;
 
 const QueryAnswerSchema = z.record(z.string(), z.unknown()).nullable();
@@ -150,6 +155,9 @@ export function registerQueryTools(server: McpServer): void {
 async function answerDeterministicQuery(recordingId: string, question: string): Promise<z.infer<typeof QueryResponseSchema>> {
   const normalized = question.toLowerCase().trim();
   const tried: string[] = [];
+
+  const browserArtifact = browserArtifactResponse(recordingId, question, normalized, tried);
+  if (browserArtifact) return browserArtifact;
 
   tried.push("finding_at_timestamp");
   if (/(bug|finding|issue|work item).*(at|near|around)?\s*\d|finding\s+at\s+\d/.test(normalized)) {
@@ -312,6 +320,148 @@ async function answerDeterministicQuery(recordingId: string, question: string): 
     patterns_matched: [],
     patterns_tried: [...PATTERN_IDS],
   };
+}
+
+function browserArtifactResponse(
+  recordingId: string,
+  question: string,
+  normalized: string,
+  tried: string[],
+): z.infer<typeof QueryResponseSchema> | null {
+  const root = resolve(".reelink", "browser-recordings", recordingId);
+  if (!existsSync(root)) return null;
+
+  tried.push("browser_artifacts");
+  const manifestPath = join(root, "manifest.json");
+  const manifest = existsSync(manifestPath)
+    ? (JSON.parse(readFileSync(manifestPath, "utf8")) as Record<string, unknown>)
+    : {};
+
+  if (isBrowserArtifactQuestion(normalized)) {
+    return {
+      recording_id: recordingId,
+      question,
+      answer: { kind: "browser_artifacts", manifest_path: manifestPath, manifest },
+      patterns_matched: ["browser_artifacts"],
+      patterns_tried: [...tried],
+    };
+  }
+
+  tried.push("browser_console");
+  if (isBrowserConsoleQuestion(normalized)) {
+    const path = join(root, "console.jsonl");
+    const parsed = readBrowserJsonl(path);
+    return {
+      recording_id: recordingId,
+      question,
+      answer: {
+        kind: "console",
+        path,
+        events: parsed.events.slice(-50).map(compactEvent),
+        parse_errors: parsed.parse_errors,
+      },
+      patterns_matched: ["browser_console"],
+      patterns_tried: [...tried],
+    };
+  }
+
+  tried.push("browser_network");
+  if (isBrowserNetworkQuestion(normalized)) {
+    const path = join(root, "network.jsonl");
+    const parsed = readBrowserJsonl(path);
+    const { events } = parsed;
+    const failed = events.filter(
+      (event) =>
+        event.event === "requestfailed" ||
+        event.ok === false ||
+        (typeof event.status === "number" && event.status >= 400),
+    );
+    return {
+      recording_id: recordingId,
+      question,
+      answer: {
+        kind: "network",
+        path,
+        event_count: events.length,
+        failed_count: failed.length,
+        failed: failed.slice(-50),
+        parse_errors: parsed.parse_errors,
+      },
+      patterns_matched: ["browser_network"],
+      patterns_tried: [...tried],
+    };
+  }
+
+  tried.push("browser_dom");
+  if (isBrowserDomQuestion(normalized)) {
+    const domDir = join(root, "dom");
+    const files = existsSync(domDir)
+      ? readdirSync(domDir)
+          .filter((file) => file.endsWith(".html"))
+          .sort()
+      : [];
+    return {
+      recording_id: recordingId,
+      question,
+      answer: {
+        kind: "dom",
+        dir: domDir,
+        files,
+        latest: files.length ? join(domDir, files[files.length - 1] as string) : null,
+      },
+      patterns_matched: ["browser_dom"],
+      patterns_tried: [...tried],
+    };
+  }
+
+  return null;
+}
+
+function compactEvent(event: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(event).map(([key, value]) => [
+      key,
+      typeof value === "string" && value.length > 1000 ? `${value.slice(0, 1000)}...(+${value.length - 1000} chars)` : value,
+    ]),
+  );
+}
+
+function isBrowserArtifactQuestion(value: string): boolean {
+  return /\b(browser|page|headed)\b.*\b(artifacts?|recorded|manifest)\b/.test(value) ||
+    /\b(artifacts?|recorded|manifest)\b.*\b(browser|page|headed)\b/.test(value);
+}
+
+function isBrowserConsoleQuestion(value: string): boolean {
+  return /\b(browser|page)\b.*\b(console|logs?|errors?)\b/.test(value) ||
+    /\b(console|logs?|errors?)\b.*\b(browser|page)\b/.test(value);
+}
+
+function isBrowserNetworkQuestion(value: string): boolean {
+  return /\b(browser|page)\b.*\b(network|requests?|responses?|failed requests?)\b/.test(value) ||
+    /\b(network|requests?|responses?|failed requests?)\b.*\b(browser|page)\b/.test(value);
+}
+
+function isBrowserDomQuestion(value: string): boolean {
+  return /\b(browser|page)\b.*\b(dom|html|snapshot)\b/.test(value) ||
+    /\b(dom|html|snapshot)\b.*\b(browser|page)\b/.test(value);
+}
+
+function readBrowserJsonl(path: string): { events: Array<Record<string, unknown>>; parse_errors: number } {
+  if (!existsSync(path)) return { events: [], parse_errors: 0 };
+
+  const events: Array<Record<string, unknown>> = [];
+  let parseErrors = 0;
+
+  for (const line of readFileSync(path, "utf8").split("\n")) {
+    if (!line) continue;
+    try {
+      events.push(JSON.parse(line) as Record<string, unknown>);
+    } catch {
+      parseErrors += 1;
+    }
+  }
+
+  return { events, parse_errors: parseErrors };
 }
 
 function workItemsResponse(
