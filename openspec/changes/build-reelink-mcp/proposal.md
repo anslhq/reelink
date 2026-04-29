@@ -17,10 +17,12 @@ Bug reporting is the Layer 0 wedge: paste an arbitrary video path and get useful
 - Use Vercel AI SDK v6 for model calls, with `@openrouter/ai-sdk-provider` for the v0.1 Qwen raw-video path. The verified default is `qwen/qwen3.6-flash` via OpenRouter because live catalog data shows `text,image,video` modalities. Self-hosted Qwen through SGLang, Ollama, or Hugging Face endpoints is a last-resort fallback, not the default demo path. GPT/OpenAI ToolLoopAgent query is deferred to v0.2 unless explicitly re-approved.
 - Use `ffmpeg-static` for deterministic cached frame retrieval and future non-primary providers. The primary OpenRouter/Qwen Layer 0 path sends raw video only, validates the selected route against OpenRouter's live `input_modalities`, and fails loudly for image-only Qwen routes. Bundle bippy and react-grab as hard MIT dependencies — bippy for per-commit fiber capture (transitively pulled via react-grab), react-grab the library injected in normal mode so the toolbar UI is visible during recordings.
 - Provide `npx reelink init`, agent MCP config detection/registration for Codex/Cursor/Claude Code/Cline/Roo/VS Code Copilot, `~/.reelink/config.json`, env-only API keys, and `reelink doctor` troubleshooting.
+- Ship a Codex-as-client setup prompt (`docs/setup-prompt.md`) and a manual integration testing runbook (`docs/integration-testing-runbook.md`) so users can wire Reelink into a real coding-agent session and verify end-to-end Layer 0 round-trip against their own bug recording before any further code is added. The setup prompt is the v0.1 demo onboarding flow; the runbook is the operator equivalent.
 
 ## Capabilities
 
 ### New Capabilities
+
 - `video-finding-analysis`: Analyze arbitrary screen recordings into timestamped structured findings without requiring app, browser, source, or SDK context.
 - `recording-state-package`: Persist Reelink recordings as timestamp-aligned folders containing video, findings, frames, trace, DOM, React/fiber, network, console, and manifest artifacts as available.
 - `timestamped-dom-timeline`: Capture and retrieve per-timestamp DOM, console, network, trace, and finding context from Playwright trace snapshots plus bippy/react-grab timelines.

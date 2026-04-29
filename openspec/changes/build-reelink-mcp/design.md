@@ -7,6 +7,7 @@ The wedge is still simple: arbitrary video path to structured findings. The thes
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Ship Layer 0 first: `reelink_analyze(path)` accepts `.mov`/`.mp4`/`.webm` and returns `{recording_id, duration_sec, summary, findings: [{id, ts, type, severity, title, confidence}], next_steps}` with only a video path.
 - Define Layer 1 as a recording folder that aligns video, frames, Playwright trace snapshots, bippy fiber/source data, react-grab element-pointer events, network, console, and findings by timestamp.
 - Define Layer 2 as agent self-recording: `reelink_run(task_description, target_url)` records a browser task, stores eval evidence, and feeds next-action observation.
@@ -15,6 +16,7 @@ The wedge is still simple: arbitrary video path to structured findings. The thes
 - Provide a hackathon plan that can demo video-to-finding quickly, then add cached folders/query tools, then stretch into runtime/agent recording.
 
 **Non-Goals:**
+
 - Do not frame Reelink as mainly a video bug reporter.
 - Do not frame Reelink as mainly an MCP server.
 - Do not require a browser, source repo, Chrome extension, SaaS recorder, or app SDK for Layer 0.
@@ -220,3 +222,4 @@ The immediate risk is scope drift away from the verified wedge. Layer 0 raw-vide
 - Do not bundle agentation. Decision 5 + Non-Goals park it for v0.2 pending Benji Taylor blessing.
 - Do not silently fall back to frame extraction on the primary VLM path.
 - Do not synthesize DOM structure from Layer 0 frames; return `not_collected` until Layer 1 streams exist.
+
