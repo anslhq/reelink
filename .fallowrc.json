@@ -28,7 +28,9 @@
     ]
   },
   "ignoreDependencies": [
-    "@modelcontextprotocol/sdk"
+    "@modelcontextprotocol/sdk",
+    "pino-pretty",
+    "react-grab"
   ],
   "duplicates": {
     "enabled": true,
