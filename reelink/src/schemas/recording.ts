@@ -5,6 +5,7 @@ export const StreamStatusSchema = z.object({
   reason: z.string().optional(),
 });
 
+/** Recording package envelope (agent-readable manifest); `source_type` distinguishes layout pipelines. */
 export const ManifestSchema = z.object({
   recording_id: z.string(),
   created_at: z.string(),
@@ -30,7 +31,20 @@ export const ManifestSchema = z.object({
   prod_build: z.boolean().default(false),
   safety: z.object({
     redaction_applied: z.boolean(),
+    redaction_rules: z.array(z.string()).optional(),
+    redacted_streams: z.array(z.string()).optional(),
   }),
+  dom_snapshots: z
+    .array(
+      z.object({
+        ts: z.number(),
+        path: z.string(),
+        url: z.string().optional(),
+        title: z.string().optional(),
+        tree_summary: z.string().optional(),
+      }),
+    )
+    .optional(),
 });
 
 export type Manifest = z.infer<typeof ManifestSchema>;

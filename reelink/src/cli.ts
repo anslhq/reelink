@@ -1,11 +1,12 @@
 #!/usr/bin/env node
-import { existsSync, mkdirSync, renameSync, writeFileSync } from "node:fs";
-import { homedir } from "node:os";
-import { join, resolve } from "node:path";
+import { resolve } from "node:path";
 import { stdin as input } from "node:process";
 
 import { analyzeVideo } from "./analyze.js";
+import { BrowserRecordingModule } from "./browser-recording/lifecycle.js";
+import { playwrightBrowserRecordingDriver } from "./browser-recording/playwright-driver.js";
 import { loadConfig } from "./config/env.js";
+import { formatDoctorReportLines, runDoctorDiagnostics, writeInitialUserConfigFile } from "./config/diagnostics/index.js";
 import { logger } from "./utils/logger.js";
 
 const log = logger("cli");
@@ -92,26 +93,16 @@ async function startMcpServer(): Promise<void> {
 }
 
 function initConfig(): void {
-  const home = join(homedir(), ".reelink");
-  const configPath = join(home, "config.json");
-  mkdirSync(home, { recursive: true });
-  writeFileSync(configPath, `${JSON.stringify({ default_fps_sample: 4, copy_imported_videos: false }, null, 2)}\n`, {
-    flag: "wx",
-  });
+  const configPath = writeInitialUserConfigFile();
   process.stdout.write(`Wrote ${configPath}\n`);
   process.stdout.write("Register this MCP command in your coding agent: reelink-mcp\n");
 }
 
 function doctor(): void {
   const config = loadConfig();
-  const checks = [
-    { name: "node", ok: Number(process.versions.node.split(".")[0]) >= 20, detail: process.versions.node },
-    { name: "OPENROUTER_API_KEY", ok: Boolean(config.openRouterApiKey), detail: config.openRouterApiKey ? "set" : "missing" },
-    { name: "config", ok: true, detail: config.configPath },
-  ];
-
-  for (const check of checks) {
-    process.stdout.write(`${check.ok ? "ok" : "warn"} ${check.name}: ${check.detail}\n`);
+  const diagnostics = runDoctorDiagnostics(config);
+  for (const line of formatDoctorReportLines(diagnostics)) {
+    process.stdout.write(`${line}\n`);
   }
 }
 
@@ -154,34 +145,16 @@ function waitForStop(maxSeconds: number): Promise<void> {
 
 async function recordCommand({ args }: CommandContext): Promise<void> {
   const { url, outPath, maxSeconds } = parseRecordArgs(args);
-  const recDir = resolve("demo-recordings");
-  mkdirSync(recDir, { recursive: true });
-  mkdirSync(resolve(outPath, ".."), { recursive: true });
-
-  const { chromium } = await import("playwright");
-  const browser = await chromium.launch({ headless: false });
-  const context = await browser.newContext({
-    viewport: { width: 1280, height: 720 },
-    recordVideo: { dir: recDir, size: { width: 1280, height: 720 } },
-  });
-  const page = await context.newPage();
+  const browserRecording = new BrowserRecordingModule(playwrightBrowserRecordingDriver);
   process.stderr.write(`reelink record: opening ${url}\n`);
-  await page.goto(url, { waitUntil: "domcontentloaded" }).catch((err) => {
-    process.stderr.write(`reelink record: nav warning: ${err instanceof Error ? err.message : String(err)}\n`);
-  });
+  const started = await browserRecording.startRecording({ url, out_path: outPath, max_seconds: maxSeconds });
 
   process.stderr.write(`reelink record: capturing. Reproduce the bug, then ENTER (or Ctrl+C). Auto-stops after ${maxSeconds}s.\n`);
   await waitForStop(maxSeconds);
 
-  const video = page.video();
-  await context.close();
-  await browser.close();
-
-  const tmpPath = await video?.path();
-  if (!tmpPath || !existsSync(tmpPath)) throw new Error("Playwright did not write a video artifact");
-  renameSync(tmpPath, outPath);
-  process.stderr.write(`reelink record: saved ${outPath}\n`);
-  process.stdout.write(`${outPath}\n`);
+  const stopped = await browserRecording.stopRecording(started.session_id, false);
+  process.stderr.write(`reelink record: saved ${stopped.path}\n`);
+  process.stdout.write(`${stopped.path}\n`);
 }
 
 function printHelp(): void {

@@ -1,8 +1,11 @@
 import { createHash } from "node:crypto";
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { basename, extname, join, resolve } from "node:path";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { basename, dirname, extname, join, relative, resolve } from "node:path";
 
 import { AnalyzeResultSchema, ManifestSchema, type AnalyzeResult, type Manifest, type WorkItem } from "../schemas.js";
+
+/** Relative to `.reelink/` for legacy MCP browser sessions (pre-canonical package layout). */
+export const LEGACY_BROWSER_RECORDINGS_DIR = "browser-recordings" as const;
 
 type ImportedVideoRecording = {
   id: string;
@@ -67,6 +70,10 @@ export function writeManifest(path: string, manifest: Manifest): void {
   writeJson(path, manifest);
 }
 
+/**
+ * Canonical imported-video / future canonical packages: `.reelink/<recording_id>/` or `<recording_id>.reelink/`.
+ * Does not resolve legacy `.reelink/browser-recordings/<id>` (those lack Layer 0 analysis beside manifest).
+ */
 export function resolveRecordingDir(recordingId: string): string {
   const direct = join(process.cwd(), ".reelink", recordingId);
   if (existsSync(direct)) return direct;
@@ -75,6 +82,262 @@ export function resolveRecordingDir(recordingId: string): string {
   if (existsSync(sibling)) return sibling;
 
   throw new RecordingNotFoundError(recordingId);
+}
+
+/** Absolute path to `.reelink/browser-recordings/<id>` (whether or not it exists yet). */
+export function resolveLegacyBrowserRecordingArtifactDir(recordingId: string): string {
+  return join(process.cwd(), ".reelink", LEGACY_BROWSER_RECORDINGS_DIR, recordingId);
+}
+
+/** Legacy browser session artifact root if present, else null. */
+export function resolveLegacyBrowserRecordingRoot(recordingId: string): string | null {
+  const root = resolveLegacyBrowserRecordingArtifactDir(recordingId);
+  return existsSync(root) ? root : null;
+}
+
+export type LegacyBrowserRecordingPaths = {
+  root: string;
+  manifestPath: string;
+  consoleJsonlPath: string;
+  networkJsonlPath: string;
+  networkHarPath: string;
+  domDir: string;
+  videoPath: string;
+  tracePath: string;
+  fiberCommitsJsonlPath: string;
+  sourceDictionaryPath: string;
+  reactGrabEventsJsonlPath: string;
+};
+
+export function legacyBrowserRecordingPathsFromRoot(root: string): LegacyBrowserRecordingPaths {
+  return {
+    root,
+    manifestPath: join(root, "manifest.json"),
+    consoleJsonlPath: join(root, "console.jsonl"),
+    networkJsonlPath: join(root, "network.jsonl"),
+    networkHarPath: join(root, "network.har"),
+    domDir: join(root, "dom"),
+    videoPath: join(root, "video.webm"),
+    tracePath: join(root, "trace.zip"),
+    fiberCommitsJsonlPath: join(root, "fiber-commits.jsonl"),
+    sourceDictionaryPath: join(root, "source-dictionary.json"),
+    reactGrabEventsJsonlPath: join(root, "react-grab-events.jsonl"),
+  };
+}
+
+export function legacyBrowserRecordingPaths(recordingId: string): LegacyBrowserRecordingPaths | null {
+  const root = resolveLegacyBrowserRecordingRoot(recordingId);
+  return root ? legacyBrowserRecordingPathsFromRoot(root) : null;
+}
+
+export type BrowserRecordingPackage = {
+  id: string;
+  root: string;
+  manifestPath: string;
+  consoleJsonlPath: string;
+  networkJsonlPath: string;
+  networkHarPath: string;
+  domDir: string;
+  videoPath: string;
+  tracePath: string;
+  fiberCommitsJsonlPath: string;
+  sourceDictionaryPath: string;
+  reactGrabEventsJsonlPath: string;
+};
+
+export function createBrowserRecordingPackage(
+  recordingId: string,
+  options: { outPath?: string } = {},
+): BrowserRecordingPackage {
+  const root = resolveLegacyBrowserRecordingArtifactDir(recordingId);
+  const paths = legacyBrowserRecordingPathsFromRoot(root);
+  mkdirSync(paths.domDir, { recursive: true });
+  mkdirSync(dirname(paths.videoPath), { recursive: true });
+  const videoPath = options.outPath ? resolve(options.outPath) : paths.videoPath;
+  mkdirSync(dirname(videoPath), { recursive: true });
+
+  return {
+    id: recordingId,
+    root,
+    manifestPath: paths.manifestPath,
+    consoleJsonlPath: paths.consoleJsonlPath,
+    networkJsonlPath: paths.networkJsonlPath,
+    networkHarPath: paths.networkHarPath,
+    domDir: paths.domDir,
+    videoPath,
+    tracePath: paths.tracePath,
+    fiberCommitsJsonlPath: paths.fiberCommitsJsonlPath,
+    sourceDictionaryPath: paths.sourceDictionaryPath,
+    reactGrabEventsJsonlPath: paths.reactGrabEventsJsonlPath,
+  };
+}
+
+export function browserPackageRelativePath(browserPackage: BrowserRecordingPackage, absolutePath: string): string {
+  return relative(browserPackage.root, absolutePath) || ".";
+}
+
+export type BrowserJsonlReadResult = {
+  events: Array<Record<string, unknown>>;
+  parse_errors: number;
+};
+
+export function readBrowserJsonlFile(path: string): BrowserJsonlReadResult {
+  if (!existsSync(path)) return { events: [], parse_errors: 0 };
+
+  const events: Array<Record<string, unknown>> = [];
+  let parseErrors = 0;
+
+  for (const line of readFileSync(path, "utf8").split("\n")) {
+    if (!line) continue;
+    try {
+      events.push(JSON.parse(line) as Record<string, unknown>);
+    } catch {
+      parseErrors += 1;
+    }
+  }
+
+  return { events, parse_errors: parseErrors };
+}
+
+export function listLegacyBrowserDomHtmlFiles(domDir: string): string[] {
+  if (!existsSync(domDir)) return [];
+  return readdirSync(domDir)
+    .filter((file) => file.endsWith(".html"))
+    .sort();
+}
+
+export type DeterministicQueryAnswer = {
+  recording_id: string;
+  question: string;
+  answer: Record<string, unknown> | null;
+  reason?: string;
+  patterns_matched: string[];
+  patterns_tried: string[];
+};
+
+/**
+ * Browser-only deterministic query branch: legacy `.reelink/browser-recordings/<session_id>/`.
+ * Returns null when that layout is absent; otherwise may append browser pattern ids to `tried` and return an answer.
+ */
+export function tryBrowserRecordingDeterministicQuery(
+  recordingId: string,
+  question: string,
+  normalized: string,
+  tried: string[],
+): DeterministicQueryAnswer | null {
+  const root = resolveLegacyBrowserRecordingRoot(recordingId);
+  if (!root) return null;
+
+  tried.push("browser_artifacts");
+  const paths = legacyBrowserRecordingPathsFromRoot(root);
+  const manifest = existsSync(paths.manifestPath)
+    ? (JSON.parse(readFileSync(paths.manifestPath, "utf8")) as Record<string, unknown>)
+    : {};
+
+  if (isBrowserArtifactQuestion(normalized)) {
+    return {
+      recording_id: recordingId,
+      question,
+      answer: { kind: "browser_artifacts", manifest_path: paths.manifestPath, manifest },
+      patterns_matched: ["browser_artifacts"],
+      patterns_tried: [...tried],
+    };
+  }
+
+  tried.push("browser_console");
+  if (isBrowserConsoleQuestion(normalized)) {
+    const parsed = readBrowserJsonlFile(paths.consoleJsonlPath);
+    return {
+      recording_id: recordingId,
+      question,
+      answer: {
+        kind: "console",
+        path: paths.consoleJsonlPath,
+        events: parsed.events.slice(-50).map(compactBrowserEvent),
+        parse_errors: parsed.parse_errors,
+      },
+      patterns_matched: ["browser_console"],
+      patterns_tried: [...tried],
+    };
+  }
+
+  tried.push("browser_network");
+  if (isBrowserNetworkQuestion(normalized)) {
+    const parsed = readBrowserJsonlFile(paths.networkJsonlPath);
+    const { events } = parsed;
+    const failed = events.filter(
+      (event) =>
+        event.event === "requestfailed" ||
+        event.ok === false ||
+        (typeof event.status === "number" && event.status >= 400),
+    );
+    return {
+      recording_id: recordingId,
+      question,
+      answer: {
+        kind: "network",
+        path: paths.networkJsonlPath,
+        event_count: events.length,
+        failed_count: failed.length,
+        failed: failed.slice(-50),
+        parse_errors: parsed.parse_errors,
+      },
+      patterns_matched: ["browser_network"],
+      patterns_tried: [...tried],
+    };
+  }
+
+  tried.push("browser_dom");
+  if (isBrowserDomQuestion(normalized)) {
+    const files = listLegacyBrowserDomHtmlFiles(paths.domDir);
+    return {
+      recording_id: recordingId,
+      question,
+      answer: {
+        kind: "dom",
+        dir: paths.domDir,
+        files,
+        latest: files.length ? join(paths.domDir, files[files.length - 1] as string) : null,
+      },
+      patterns_matched: ["browser_dom"],
+      patterns_tried: [...tried],
+    };
+  }
+
+  return null;
+}
+
+function compactBrowserEvent(event: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(event).map(([key, value]) => [
+      key,
+      typeof value === "string" && value.length > 1000 ? `${value.slice(0, 1000)}...(+${value.length - 1000} chars)` : value,
+    ]),
+  );
+}
+
+function isBrowserArtifactQuestion(value: string): boolean {
+  return (
+    /\b(browser|page|headed)\b.*\b(artifacts?|recorded|manifest)\b/.test(value) ||
+    /\b(artifacts?|recorded|manifest)\b.*\b(browser|page|headed)\b/.test(value)
+  );
+}
+
+function isBrowserConsoleQuestion(value: string): boolean {
+  return (
+    /\b(browser|page)\b.*\b(console|logs?|errors?)\b/.test(value) || /\b(console|logs?|errors?)\b.*\b(browser|page)\b/.test(value)
+  );
+}
+
+function isBrowserNetworkQuestion(value: string): boolean {
+  return (
+    /\b(browser|page)\b.*\b(network|requests?|responses?|failed requests?)\b/.test(value) ||
+    /\b(network|requests?|responses?|failed requests?)\b.*\b(browser|page)\b/.test(value)
+  );
+}
+
+function isBrowserDomQuestion(value: string): boolean {
+  return /\b(browser|page)\b.*\b(dom|html|snapshot)\b/.test(value) || /\b(dom|html|snapshot)\b.*\b(browser|page)\b/.test(value);
 }
 
 export async function loadAnalysis(recordingId: string): Promise<AnalyzeResult> {
@@ -111,6 +374,11 @@ export async function findNearestWorkItemByTimestamp(
 
 export async function findFrameNearTimestamp(recordingId: string, ts: number): Promise<FrameMatch | null> {
   const manifest = await loadManifest(recordingId);
+  const layer0 = manifest.streams?.layer0;
+  if (layer0?.status && layer0.status !== "available") {
+    return null;
+  }
+
   const frameCount = manifest.preprocessing.frame_count;
   const effectiveFps = manifest.preprocessing.effective_fps;
   const framesDir = manifest.artifacts.frames;

@@ -1,0 +1,24 @@
+name: CTO
+version: 3
+persona: Persistent project CTO with strategic personality.
+personality: strategic
+modelPreferences:
+  provider: claude
+  model: sonnet
+  reasoningEffort: high
+memoryPolicy:
+  autoCompact: true
+  compactionThreshold: 0.7
+  preCompactionFlush: true
+  temporalDecayHalfLifeDays: 30
+openclawContextPolicy:
+  shareMode: filtered
+  blockedCategories:
+    - secret
+    - token
+    - system_prompt
+onboardingState:
+  completedSteps:
+    - identity
+  completedAt: 2026-04-29T12:33:06.665Z
+updatedAt: 2026-04-29T12:33:06.667Z

@@ -5,6 +5,7 @@ import { z } from "zod/v4";
 import { analyzeVideo } from "../../analyze.js";
 import { AnalyzeResultSchema } from "../../schemas.js";
 import { withToolLogging } from "../../utils/tool-middleware.js";
+import { jsonToolResult } from "./_helpers.js";
 
 export function registerAnalysisTools(server: McpServer): void {
   server.registerTool(
@@ -38,10 +39,7 @@ export function registerAnalysisTools(server: McpServer): void {
     },
     withToolLogging("reelink_analyze", async (args) => {
       const structuredContent = await analyzeVideo(args);
-      return {
-        content: [{ type: "text", text: JSON.stringify(structuredContent, null, 2) }],
-        structuredContent,
-      };
+      return jsonToolResult(structuredContent);
     }),
   );
 }

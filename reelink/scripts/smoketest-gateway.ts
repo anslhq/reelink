@@ -1,4 +1,4 @@
-// Section 0.7 model-path smoke test.
+// Gateway model-path smoke test.
 // Verifies AI SDK v6 + OpenRouter Qwen VL path works end-to-end.
 // Requires OPENROUTER_API_KEY in env.
 //
@@ -11,7 +11,7 @@ import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { generateText, Output, type ModelMessage } from "ai";
 import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { logger } from "../src/utils/logger.js";
 import { telemetryFor } from "../src/gateway/telemetry.js";
 import { loadDotEnv } from "../src/config/dotenv.js";
@@ -40,7 +40,7 @@ const recordings = readdirSync(recordingsDir)
 if (recordings.length === 0) {
   log.error(
     { recordingsDir },
-    "no .mov/.mp4/.webm recordings under demo-recordings/ - record one first per Section 0.3",
+    "no .mov/.mp4/.webm recordings under demo-recordings/ - record one first before running this smoke test",
   );
   process.exit(1);
 }
