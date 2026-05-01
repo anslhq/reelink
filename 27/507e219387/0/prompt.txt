@@ -1,0 +1,2063 @@
+<timestamp>Thursday, Apr 30, 2026, 10:39 PM (UTC+10)</timestamp>
+
+read completion-auditreview.md 
+and this
+[P1] The plan’s source-of-truth order is wrong. In reelink_completion_fb9c0886.plan.md (line 33) the plan puts itself above everything else, but the user explicitly says in transcript-combined.md (line 1061) that the transcript is the highest-order source of truth and should be read first. That means the plan is starting from the wrong authority model.
+
+[P1] The Layer 0 public contract is still unresolved across plan, OpenSpec, and code. The plan pushes findings as the public contract in reelink_completion_fb9c0886.plan.md (line 88), and the current remediation table repeats that in tasks.md (line 7), but reelink_analyze still publicly exposes both findings and work_items in analysis.ts (line 27), and the checked P0 task still claims the returned shape is work_items in tasks.md (line 108). The plan cannot credibly call completion until one contract wins and the others are rewritten.
+
+[P1] OpenSpec is overclaiming DevX completion. init is checked complete in tasks.md (line 124), but the actual implementation in cli.ts (line 102) only writes ~/.reelink/config.json and prints snippets. It does not detect/register agent configs, does not wire react-grab readiness, and does not actually perform client setup. The status table also still says DevX is pending in tasks.md (line 9). That is a direct plan-vs-code mismatch.
+
+[P1] The OpenSpec tracker is internally inconsistent enough that its checkboxes are not trustworthy. The same file says Layer 0 contract drift, DevX pending, browser gateway incomplete, Layer 1 partial, Layer 2 contract gap, and eval incomplete in tasks.md (line 7), but then marks the corresponding remediation and most of P2/P3 as fully done in tasks.md (line 37) and tasks.md (line 146). As a status artifact, it is currently self-contradictory.
+
+[P2] The query story is still contradictory. Design says v0.1 query is deterministic and no GPT/OpenAI path is part of the primary implementation in design.md (line 191), but reelink_query is wired through answerHybridQuery in retrieval.ts (line 99), query/index.ts re-exports the GPT path in index.ts (line 4), and the OpenAI fallback implementation exists in gpt-fallback.ts (line 1). If GPT fallback is deferred, it should not be wired into the live query path.
+
+[P2] The completion plan still hard-commits architectural choices the transcript did not cleanly settle. The plan mandates “real react-grab capture” and “no rrweb” in reelink_completion_fb9c0886.plan.md (line 54), but the transcript later argues for raw-video Qwen plus a fuller runtime timeline and repeatedly re-litigates whether existing browser tooling should be wrapped, imported, or proxied in transcript-combined.md (line 3069) and transcript-combined.md (line 4063). The current plan reads more “post-hoc architecture lock” than “faithful transcript-derived plan.”
+and review eeveryting in openspec and allthe code in reelink and switch to plan mode to crete a extenmly comprehsie plan to finish everyting needed of the final desired state of every singel thign implementd
+
+---
+
+<timestamp>Thursday, Apr 30, 2026, 10:40 PM (UTC+10)</timestamp>
+
+YUO ARE HTE PANNER YUO CAN USE SUBAGENTS RO REVIEW DOCS AND CODE BASE BUT YUOR READ AND CRET HTE PKAN LAZY FUCK
+
+---
+
+<timestamp>Thursday, Apr 30, 2026, 10:42 PM (UTC+10)</timestamp>
+
+use multiple subagents for each aspect to increase accuracy and concurrency jesus christ
+
+---
+
+<timestamp>Thursday, Apr 30, 2026, 10:47 PM (UTC+10)</timestamp>
+
+ok go and write the plan wioth everything use ~/Documents/Github/landing as the teting app it alrady has react grab setup but success is removeing thereact grab doing the bunx -y reelink init stuff see if it actually inits the etnire reelink including the reelink stuff and doig the react grab wokrflow of initializing and hooking intot he detcted framework files etc full wokring
+
+---
+
+<timestamp>Thursday, Apr 30, 2026, 10:51 PM (UTC+10)</timestamp>
+
+IGNORE THIS /Users/harsha/.cursor/plans/reelink_completion_fb9c0886.plan.md if its outdated ignore we craet a new plan file here
+
+---
+
+<timestamp>Thursday, Apr 30, 2026, 10:54 PM (UTC+10)</timestamp>
+
+Findings
+High: rewriting tasks.md away from checkbox semantics will break the repo’s current OpenSpec workflow.
+Your Phase 1 says to rewrite openspec/changes/build-reelink-mcp/tasks.md from binary checkboxes into explicit statuses like planned, implemented, unit-tested, etc. That conflicts directly with the repo’s actual OpenSpec execution model: openspec-apply-change and openspec-verify-change both assume checkbox parsing for progress/completeness. If you do this, you’ll make the current automation and skill flow less reliable right when you want tighter control.
+References: openspec/changes/build-reelink-mcp/tasks.md, .agents/skills/openspec-apply-change/SKILL.md, .agents/skills/openspec-verify-change/SKILL.md
+Recommendation: keep checkbox mechanics as the machine-readable source, and add a status table or annotations above the sections if you want richer state. Do not replace the checkbox model.
+
+High: the plan overfits completion proof to ~/Documents/Github/landing without reconciling that with the broader public contract.
+Phase 5 makes ~/Documents/Github/landing the critical acceptance target for react-grab/init behavior. That is useful as a real-app proof, but the repo’s current OpenSpec and DevX story still imply broader framework/client behavior than a single app proves. If you finish this plan exactly as written, you could claim “done” based on one React app while still leaving the public claim too broad.
+References: reelink/src/config/diagnostics/init-config.ts, docs/setup-prompt.md, reelink/docs/integration-testing-runbook.md, openspec/changes/build-reelink-mcp/specs/agent-recording-workflow/spec.md
+Recommendation: either explicitly narrow the public claim to “verified on landing first, broader framework support follows,” or add one more lightweight proof target so the final claim isn’t effectively single-app-only.
+
+Medium: several phases treat already-implemented areas like greenfield work, which risks churn and regressions.
+The plan is much stronger than the older ones, but it still frames browser gateway, recording package semantics, runtime retrieval, and reelink_run as if they need wholesale implementation. Current code already has substantial behavior in reelink/src/mcp/tools/recording.ts, reelink/src/runtime-artifacts/retrieval.ts, reelink/src/recordings/store.ts, and reelink/src/agent-run/run.ts. Without an explicit “verify existing behavior before rewriting” rule, this plan still leaves room for unnecessary rewrites and destabilization.
+References: reelink/src/mcp/tools/recording.ts, reelink/src/runtime-artifacts/retrieval.ts, reelink/src/recordings/store.ts, reelink/src/agent-run/run.ts
+Recommendation: add a rule at the top of Phases 6–8: “Prefer proving and tightening existing behavior over rewriting it. Only change implementation where the transcript-defined end state is not already satisfied.”
+
+Medium: the final verification gate is still incomplete because it does not require the highest-signal end-to-end client checks already available in the repo.
+Phase 10 has a good command checklist, but it is still too code/test-centric. The repo already contains docs/setup-prompt.md and reelink/docs/integration-testing-runbook.md, and your current public/client story depends on them. If those are not executed as part of final verification, you can still end up with a repo that “passes tests” but has broken Codex onboarding or misleading setup instructions.
+References: docs/setup-prompt.md, reelink/docs/integration-testing-runbook.md, reelink/src/config/diagnostics/init-config.ts, reelink/src/cli.ts
+Recommendation: add explicit final-gate items:
+
+run docs/setup-prompt.md end-to-end in a real Codex session
+run reelink/docs/integration-testing-runbook.md against landing
+capture pass/fail results before marking completion
+Low: the plan still doesn’t fully separate “public contract cleanup” from “backward-compatibility behavior” for historical recordings.
+Phase 3 correctly calls out findings vs work_items, but the repo already contains legacy-tolerant behavior in reelink/src/recordings/store.ts, and the current public schema in reelink/src/mcp/tools/analysis.ts still exposes both. The plan should be more explicit about whether legacy recordings remain readable, whether dual-shape output is temporary, and when/if work_items stops being public.
+References: reelink/src/mcp/tools/analysis.ts, reelink/src/analysis/pipeline.ts, reelink/src/schemas/layer0.ts, reelink/src/recordings/store.ts
+Recommendation: add one explicit contract decision under Phase 3:
+
+public response = findings only, work_items stored only
+or
+public response = findings + work_items during a compatibility window, with removal criteria
+Assumptions
+I reviewed the pasted plan as the target, not as a file already saved in the repo.
+I treated the current repo state as implementation evidence and the combined transcript as desired end-state authority, consistent with your instruction.
+I did not make any code changes.
+Final assessment
+This is close to a good final plan, but it is not yet “10000% no gaps”.
+
+The biggest fix you should make before treating it as the final master plan is:
+
+keep OpenSpec checkbox mechanics intact,
+explicitly prevent unnecessary rewrites of already-working code,
+make Codex setup and landing runbook execution part of the final gate,
+and tighten the findings / work_items compatibility policy.
+
+---
+
+<timestamp>Thursday, Apr 30, 2026, 11:00 PM (UTC+10)</timestamp>
+
+Line-by-line patch set for that final plan, optimized for missing / partially implemented product features as the highest priority.
+
+1. Replace the phase structure
+Replace the current phase list with this order:
+
+Authority + status reset
+OpenSpec reconciliation
+Public contract finalization
+Layer 0 completion
+Layer 1 completion
+Layer 2 completion
+Provider strategy completion
+Init / doctor / onboarding completion
+Recording package / manifest completion
+Docs / package / release completion
+Full verification matrix and final status sync
+Reason: this makes the plan about the actual product surface, not about “cleanup” or “hardening” first.
+
+2. Add a new section right after ## Final Product Target
+Insert:
+
+Product Completion Definition
+Reelink is only complete when all three layers are real, user-facing, and verified:
+
+Layer 0 complete means imported videos can be analyzed through the public MCP and CLI surfaces, returning the final public schema, with persisted artifacts and deterministic retrieval over those artifacts.
+Layer 1 complete means browser-driven recordings create timestamp-aligned state packages with video, trace, DOM/runtime, network, console, React/source evidence, and those artifacts are queryable through the public MCP surface.
+Layer 2 complete means reelink_run is a stable public tool that records the agent’s browser task, preserves partial-failure evidence, returns real observation state, and writes durable eval evidence.
+No layer counts as complete based on docs, partial code, or fixture-only tests alone.
+
+3. Add a new section after ## Target Architecture
+Insert:
+
+Public API Finalization
+This plan must end with a final, stable public contract for all externally visible tools and package behaviors.
+
+Required final decisions:
+
+Whether reelink_analyze returns findings only, or findings plus work_items during a compatibility window.
+The final public response shape for:
+reelink_get_finding
+reelink_get_frame
+reelink_get_dom
+reelink_get_components
+reelink_query
+reelink_run
+Legacy recording compatibility rules for old findings-only and work_items-only analysis files.
+Manifest schema stability and migration behavior.
+These are product API commitments, not cleanup tasks.
+
+4. Replace ## Phase 3: Public MCP Contract Cleanup
+Rename it to:
+
+Phase 3: Public Contract Finalization
+Then add this at the top of that phase:
+
+This phase is not a cleanup pass. It locks the stable public API of the project.
+
+Add bullets:
+
+Finalize whether findings is the sole headline public Layer 0 field.
+Define whether work_items remains public during a compatibility window or becomes stored/internal only.
+Define the final response contract and compatibility behavior for legacy recordings.
+Update all tests to enforce the final public contract, not transitional compromises.
+5. Insert a completely new phase after Phase 3
+Insert:
+
+Phase 4: Layer 0 Completion
+Files:
+
+reelink/src/analyze.ts
+reelink/src/analysis/pipeline.ts
+reelink/src/vlm/router.ts
+reelink/src/vlm/openrouter.ts
+reelink/src/video/preprocessor.ts
+reelink/src/recordings/store.ts
+reelink/src/mcp/tools/analysis.ts
+reelink/src/mcp/tools/retrieval.ts
+reelink/tests/analyze-orchestration.test.ts
+reelink/tests/mcp-query-tools.test.ts
+reelink/tests/deterministic-query.test.ts
+Work:
+
+Finalize imported-video analysis behavior.
+Finalize persisted Layer 0 package shape.
+Finalize deterministic retrieval over Layer 0 artifacts.
+Finalize failure behavior when model routes are invalid, missing, or unsupported.
+Finalize compatibility behavior for old recordings.
+Acceptance:
+
+Imported video path is stable through CLI and MCP.
+Public Layer 0 schema is final and tested.
+Retrieval over imported-video artifacts is final and tested.
+No silent fallback weakens the claimed primary path.
+6. Rename current Phase 5 to emphasize Layer 1
+If your current plan has React-grab and browser gateway separated too much, change that.
+
+Replace/merge the relevant phases into:
+
+Phase 5: Layer 1 Completion
+Files:
+
+reelink/src/browser-recording/playwright-driver.ts
+reelink/src/browser-recording/lifecycle.ts
+reelink/src/runtime-artifacts/retrieval.ts
+reelink/src/mcp/tools/recording.ts
+reelink/src/recordings/store.ts
+reelink/src/schemas/recording.ts
+reelink/src/analysis/manifest.ts
+reelink/tests/browser-recording-lifecycle.test.ts
+reelink/tests/runtime-artifact-retrieval.test.ts
+reelink/tests/mcp-tool-surface.test.ts
+Work:
+
+Make the browser recording flow a first-class supported path.
+Make react-grab visible UX a required working behavior.
+Make bippy/react-grab/source output a required working behavior.
+Make the single-MCP browser gateway a required working behavior.
+Make public browser tool forwarding fully real and verified.
+Make runtime/DOM/component retrieval real and queryable.
+Acceptance:
+
+A real supported app can be recorded.
+Real visible react-grab annotation works.
+Public browser gateway tools operate on the same session that is being recorded.
+DOM/component/runtime retrieval returns real evidence from those recordings.
+Manifest/package semantics are stable and truthful.
+7. Expand the landing section into a broader real-app verification policy
+In your current Phase 5 (landing), replace the acceptance text with:
+
+Acceptance:
+
+~/Documents/Github/landing is the first required real React app verification target.
+Success on landing proves the first supported real-app path, not universal framework support.
+If public docs claim broader support than landing, at least one additional real-app verification target must be added before final completion.
+Docs must not overclaim support beyond the apps actually verified.
+8. Add a new phase for provider strategy
+Insert after Layer 1 and before Layer 2:
+
+Phase 6: Provider Strategy Completion
+Files:
+
+reelink/src/vlm/router.ts
+reelink/src/vlm/openrouter.ts
+reelink/src/config/env.ts
+reelink/src/config/user-file-config.ts
+reelink/tests/analyze-orchestration.test.ts
+reelink/tests/config-doctor.test.ts
+Work:
+
+Finalize the primary OpenRouter/Qwen path.
+Finalize route validation and fail-loud behavior.
+Finalize what is and is not supported for self-hosted fallback paths.
+Finalize docs and doctor output for provider readiness.
+If self-hosted fallback is publicly claimed, implement and verify it; otherwise move it to explicit roadmap language.
+Acceptance:
+
+Primary provider path is fully tested and documented.
+Unsupported routes fail clearly.
+Self-host fallback claims are either real and verified, or explicitly marked as roadmap only.
+Docs and doctor output match actual provider behavior.
+9. Rename current Phase 8 to Layer 2 completion
+Replace it with:
+
+Phase 7: Layer 2 Completion
+And add at the top:
+
+This phase is product work, not final hardening.
+
+Then add bullets:
+
+reelink_run must be stable enough to be treated as a real public workflow.
+recent_observation must be driven from actual browser-recording artifacts.
+eval_evidence must be truthful and durable.
+Partial-failure and insufficient-context cases must be explicitly tested.
+10. Move Init/Doctor later and strengthen it
+Rename current Phase 4 to:
+
+Phase 8: Init / Doctor / Onboarding Completion
+Add at the top:
+
+This phase must prove real user onboarding, not just config snippet generation.
+
+Add acceptance bullets:
+
+real Codex client setup works end-to-end
+rerun behavior is safe
+MCP registration is correct
+doctor reports actual readiness, not just dependency presence
+react-grab readiness is separated into installed / initialized / verified
+11. Add a dedicated manifest/package phase
+Insert:
+
+Phase 9: Recording Package / Manifest Completion
+Files:
+
+reelink/src/schemas/recording.ts
+reelink/src/analysis/manifest.ts
+reelink/src/recordings/store.ts
+reelink/src/browser-recording/lifecycle.ts
+reelink/tests/recordings-store.test.ts
+reelink/tests/browser-recording-lifecycle.test.ts
+Work:
+
+finalize package layouts
+finalize relation/linkage metadata
+finalize manifest stream semantics
+finalize prod_build semantics
+finalize browser/imported/agent-run package relationships
+finalize frame lookup across all package types
+Acceptance:
+
+package semantics are stable and documented
+manifest schema is truthful and tested
+no unconditional fake values remain
+12. Strengthen docs/package/release phase
+Replace current docs phase with:
+
+Phase 10: Docs / Package / Release Completion
+Add explicit outputs:
+
+publishable root README
+consistent reelink/docs set
+install matrix
+supported environment matrix
+troubleshooting docs
+versioning/release notes
+package files policy for included docs if needed
+migration notes if contract changes occurred
+Acceptance:
+
+all public docs match actual tested behavior
+no stale setup paths remain
+release/readme/install experience is coherent for a fresh user
+13. Strengthen the final verification gate
+Replace your current ## Phase 10: Verification Gates with:
+
+Phase 11: Full Verification Matrix And Final Status Sync
+Then add these required verification groups:
+
+Unit and integration tests
+Keep your current command list.
+
+Real client verification
+Add:
+
+run docs/setup-prompt.md end-to-end in a real Codex session
+verify MCP registration, analyze, retrieval, and final report
+record observed result
+Real app verification
+Add:
+
+run reelink/docs/integration-testing-runbook.md end-to-end against ~/Documents/Github/landing
+run imported-video path
+run browser-recording path
+run agent-run path when Layer 2 is claimed complete
+Distribution verification
+Add:
+
+verify linked local path
+verify global install path
+verify package-run path if it is publicly documented
+verify tools/list against the packaged MCP entrypoint
+Documentation verification
+Add:
+
+README instructions followed from scratch
+docs/setup-prompt followed from scratch
+runbook followed from scratch
+doctor output checked against actual state
+Final completion rule
+Replace your final rule with:
+
+A feature or phase is only complete when:
+
+implementation exists,
+tests pass,
+real verification has been observed at the required proof level,
+public docs match the observed behavior,
+and OpenSpec status is updated last from that evidence.
+No feature counts as complete from docs, code presence, or fixture-only proof alone.
+
+14. Add a proof-level legend near the top
+Insert near ## Non-Negotiable Authority:
+
+Proof Levels
+Use these proof levels consistently when updating status:
+
+implemented
+unit-tested
+smoke-verified
+real-app-verified
+client-verified
+complete
+A phase cannot be marked complete until it reaches the proof level required by its acceptance criteria.
+
+15. Add a no-rewrite rule near the top
+Insert near the architecture section:
+
+Existing Code Rule
+Prefer proving and tightening existing behavior over rewriting it.
+
+If current code already materially satisfies the transcript-defined end state, keep it and verify it. Rewrite only where:
+
+the transcript-defined requirement is unmet,
+the public contract is inconsistent,
+the behavior is misleading,
+or the implementation is untrustworthy.
+This prevents churn and preserves reviewability.
+
+16. Add a compatibility policy note
+Insert near Phase 3:
+
+Compatibility Policy
+Where old recordings, old manifests, or old public outputs exist, define compatibility explicitly.
+
+Temporary dual-shape behavior is allowed only if:
+
+it is documented,
+tested,
+and has a clear removal condition.
+Do not leave accidental compatibility or accidental dual contracts in place indefinitely.
+
+---
+
+<timestamp>Thursday, Apr 30, 2026, 11:03 PM (UTC+10)</timestamp>
+
+one side note if i want to renameth eproduct nad project shuld i do it now or after everyign is fully impleetnd?
+
+---
+
+<manually_attached_skills>
+The user has manually attached the following skills to their message.
+These skills contain specific instructions or workflows that the user wants you to follow for this request.
+Only read the files if needed, the full skill content is inlined here.
+
+Skill Name: openspec-propose
+Path: /Users/harsha/Developer/hackathon/.agents/skills/skills/openspec-propose/SKILL.md
+SKILL.md content:
+Propose a new change - create the change and generate all artifacts in one step.
+
+I'll create a change with artifacts:
+- proposal.md (what & why)
+- design.md (how)
+- tasks.md (implementation steps)
+
+When ready to implement, run /opsx:apply
+
+---
+
+**Input**: The user's request should include a change name (kebab-case) OR a description of what they want to build.
+
+**Steps**
+
+1. **If no clear input provided, ask what they want to build**
+
+   Use the **AskUserQuestion tool** (open-ended, no preset options) to ask:
+   > "What change do you want to work on? Describe what you want to build or fix."
+
+   From their description, derive a kebab-case name (e.g., "add user authentication" → `add-user-auth`).
+
+   **IMPORTANT**: Do NOT proceed without understanding what the user wants to build.
+
+2. **Create the change directory**
+   ```bash
+   openspec new change "<name>"
+   ```
+   This creates a scaffolded change at `openspec/changes/<name>/` with `.openspec.yaml`.
+
+3. **Get the artifact build order**
+   ```bash
+   openspec status --change "<name>" --json
+   ```
+   Parse the JSON to get:
+   - `applyRequires`: array of artifact IDs needed before implementation (e.g., `["tasks"]`)
+   - `artifacts`: list of all artifacts with their status and dependencies
+
+4. **Create artifacts in sequence until apply-ready**
+
+   Use the **TodoWrite tool** to track progress through the artifacts.
+
+   Loop through artifacts in dependency order (artifacts with no pending dependencies first):
+
+   a. **For each artifact that is `ready` (dependencies satisfied)**:
+      - Get instructions:
+        ```bash
+        openspec instructions <artifact-id> --change "<name>" --json
+        ```
+      - The instructions JSON includes:
+        - `context`: Project background (constraints for you - do NOT include in output)
+        - `rules`: Artifact-specific rules (constraints for you - do NOT include in output)
+        - `template`: The structure to use for your output file
+        - `instruction`: Schema-specific guidance for this artifact type
+        - `outputPath`: Where to write the artifact
+        - `dependencies`: Completed artifacts to read for context
+      - Read any completed dependency files for context
+      - Create the artifact file using `template` as the structure
+      - Apply `context` and `rules` as constraints - but do NOT copy them into the file
+      - Show brief progress: "Created <artifact-id>"
+
+   b. **Continue until all `applyRequires` artifacts are complete**
+      - After creating each artifact, re-run `openspec status --change "<name>" --json`
+      - Check if every artifact ID in `applyRequires` has `status: "done"` in the artifacts array
+      - Stop when all `applyRequires` artifacts are done
+
+   c. **If an artifact requires user input** (unclear context):
+      - Use **AskUserQuestion tool** to clarify
+      - Then continue with creation
+
+5. **Show final status**
+   ```bash
+   openspec status --change "<name>"
+   ```
+
+**Output**
+
+After completing all artifacts, summarize:
+- Change name and location
+- List of artifacts created with brief descriptions
+- What's ready: "All artifacts created! Ready for implementation."
+- Prompt: "Run `/opsx:apply` or ask me to implement to start working on the tasks."
+
+**Artifact Creation Guidelines**
+
+- Follow the `instruction` field from `openspec instructions` for each artifact type
+- The schema defines what each artifact should contain - follow it
+- Read dependency artifacts for context before creating new ones
+- Use `template` as the structure for your output file - fill in its sections
+- **IMPORTANT**: `context` and `rules` are constraints for YOU, not content for the file
+  - Do NOT copy `<context>`, `<rules>`, `<project_context>` blocks into the artifact
+  - These guide what you write, but should never appear in the output
+
+**Guardrails**
+- Create ALL artifacts needed for implementation (as defined by schema's `apply.requires`)
+- Always read dependency artifacts before creating a new one
+- If context is critically unclear, ask the user - but prefer making reasonable decisions to keep momentum
+- If a change with that name already exists, ask if user wants to continue it or create a new one
+- Verify each artifact file exists after writing before proceeding to next
+</manually_attached_skills>
+<timestamp>Thursday, Apr 30, 2026, 11:04 PM (UTC+10)</timestamp>
+
+/openspec-propose go and update the openspec files before anyting first
+
+---
+
+<timestamp>Thursday, Apr 30, 2026, 11:05 PM (UTC+10)</timestamp>
+
+ok go and edit first
+
+---
+
+<timestamp>Thursday, Apr 30, 2026, 11:10 PM (UTC+10)</timestamp>
+
+# Rename Plan: `reelink` → `reck`
+
+**Status:** ready to execute (do NOT start until npm `@anslai` scope and `github.com/anslai` org are confirmed available).
+
+**Final identity:**
+- Project name: **Reck**
+- npm package: **`@anslai/reck`** (scoped, public)
+- GitHub: **`anslai/reck`** (org rename `anslhq` → `anslai`, repo rename `reelink` → `reck`)
+- Domain: **`tryreck.dev`** (defensive: `tryreck.app`)
+- Binaries: `reck` (CLI), `reck-mcp` (MCP server)
+- Recording dir: `.reck/<id>/`
+- MCP tool prefix: `reck_*` (was `reelink_*`)
+- Env var prefix: `RECK_*` (was `REELINK_*`)
+- Folder: `reck/` at repo root (was `reelink/`) btw this is the rename
+
+---
+
+<manually_attached_skills>
+The user has manually attached the following skills to their message.
+These skills contain specific instructions or workflows that the user wants you to follow for this request.
+Only read the files if needed, the full skill content is inlined here.
+
+Skill Name: openspec-ff-change
+Path: /Users/harsha/Developer/hackathon/.agents/skills/openspec-ff-change/SKILL.md
+SKILL.md content:
+Fast-forward through artifact creation - generate everything needed to start implementation in one go.
+
+**Input**: The user's request should include a change name (kebab-case) OR a description of what they want to build.
+
+**Steps**
+
+1. **If no clear input provided, ask what they want to build**
+
+   Use the **AskUserQuestion tool** (open-ended, no preset options) to ask:
+   > "What change do you want to work on? Describe what you want to build or fix."
+
+   From their description, derive a kebab-case name (e.g., "add user authentication" → `add-user-auth`).
+
+   **IMPORTANT**: Do NOT proceed without understanding what the user wants to build.
+
+2. **Create the change directory**
+   ```bash
+   openspec new change "<name>"
+   ```
+   This creates a scaffolded change at `openspec/changes/<name>/`.
+
+3. **Get the artifact build order**
+   ```bash
+   openspec status --change "<name>" --json
+   ```
+   Parse the JSON to get:
+   - `applyRequires`: array of artifact IDs needed before implementation (e.g., `["tasks"]`)
+   - `artifacts`: list of all artifacts with their status and dependencies
+
+4. **Create artifacts in sequence until apply-ready**
+
+   Use the **TodoWrite tool** to track progress through the artifacts.
+
+   Loop through artifacts in dependency order (artifacts with no pending dependencies first):
+
+   a. **For each artifact that is `ready` (dependencies satisfied)**:
+      - Get instructions:
+        ```bash
+        openspec instructions <artifact-id> --change "<name>" --json
+        ```
+      - The instructions JSON includes:
+        - `context`: Project background (constraints for you - do NOT include in output)
+        - `rules`: Artifact-specific rules (constraints for you - do NOT include in output)
+        - `template`: The structure to use for your output file
+        - `instruction`: Schema-specific guidance for this artifact type
+        - `outputPath`: Where to write the artifact
+        - `dependencies`: Completed artifacts to read for context
+      - Read any completed dependency files for context
+      - Create the artifact file using `template` as the structure
+      - Apply `context` and `rules` as constraints - but do NOT copy them into the file
+      - Show brief progress: "✓ Created <artifact-id>"
+
+   b. **Continue until all `applyRequires` artifacts are complete**
+      - After creating each artifact, re-run `openspec status --change "<name>" --json`
+      - Check if every artifact ID in `applyRequires` has `status: "done"` in the artifacts array
+      - Stop when all `applyRequires` artifacts are done
+
+   c. **If an artifact requires user input** (unclear context):
+      - Use **AskUserQuestion tool** to clarify
+      - Then continue with creation
+
+5. **Show final status**
+   ```bash
+   openspec status --change "<name>"
+   ```
+
+**Output**
+
+After completing all artifacts, summarize:
+- Change name and location
+- List of artifacts created with brief descriptions
+- What's ready: "All artifacts created! Ready for implementation."
+- Prompt: "Run `/opsx:apply` or ask me to implement to start working on the tasks."
+
+**Artifact Creation Guidelines**
+
+- Follow the `instruction` field from `openspec instructions` for each artifact type
+- The schema defines what each artifact should contain - follow it
+- Read dependency artifacts for context before creating new ones
+- Use `template` as the structure for your output file - fill in its sections
+- **IMPORTANT**: `context` and `rules` are constraints for YOU, not content for the file
+  - Do NOT copy `<context>`, `<rules>`, `<project_context>` blocks into the artifact
+  - These guide what you write, but should never appear in the output
+
+**Guardrails**
+- Create ALL artifacts needed for implementation (as defined by schema's `apply.requires`)
+- Always read dependency artifacts before creating a new one
+- If context is critically unclear, ask the user - but prefer making reasonable decisions to keep momentum
+- If a change with that name already exists, suggest continuing that change instead
+- Verify each artifact file exists after writing before proceeding to next
+
+---
+
+Skill Name: openspec-propose
+Path: /Users/harsha/Developer/hackathon/.agents/skills/skills/openspec-propose/SKILL.md
+SKILL.md content:
+Propose a new change - create the change and generate all artifacts in one step.
+
+I'll create a change with artifacts:
+- proposal.md (what & why)
+- design.md (how)
+- tasks.md (implementation steps)
+
+When ready to implement, run /opsx:apply
+
+---
+
+**Input**: The user's request should include a change name (kebab-case) OR a description of what they want to build.
+
+**Steps**
+
+1. **If no clear input provided, ask what they want to build**
+
+   Use the **AskUserQuestion tool** (open-ended, no preset options) to ask:
+   > "What change do you want to work on? Describe what you want to build or fix."
+
+   From their description, derive a kebab-case name (e.g., "add user authentication" → `add-user-auth`).
+
+   **IMPORTANT**: Do NOT proceed without understanding what the user wants to build.
+
+2. **Create the change directory**
+   ```bash
+   openspec new change "<name>"
+   ```
+   This creates a scaffolded change at `openspec/changes/<name>/` with `.openspec.yaml`.
+
+3. **Get the artifact build order**
+   ```bash
+   openspec status --change "<name>" --json
+   ```
+   Parse the JSON to get:
+   - `applyRequires`: array of artifact IDs needed before implementation (e.g., `["tasks"]`)
+   - `artifacts`: list of all artifacts with their status and dependencies
+
+4. **Create artifacts in sequence until apply-ready**
+
+   Use the **TodoWrite tool** to track progress through the artifacts.
+
+   Loop through artifacts in dependency order (artifacts with no pending dependencies first):
+
+   a. **For each artifact that is `ready` (dependencies satisfied)**:
+      - Get instructions:
+        ```bash
+        openspec instructions <artifact-id> --change "<name>" --json
+        ```
+      - The instructions JSON includes:
+        - `context`: Project background (constraints for you - do NOT include in output)
+        - `rules`: Artifact-specific rules (constraints for you - do NOT include in output)
+        - `template`: The structure to use for your output file
+        - `instruction`: Schema-specific guidance for this artifact type
+        - `outputPath`: Where to write the artifact
+        - `dependencies`: Completed artifacts to read for context
+      - Read any completed dependency files for context
+      - Create the artifact file using `template` as the structure
+      - Apply `context` and `rules` as constraints - but do NOT copy them into the file
+      - Show brief progress: "Created <artifact-id>"
+
+   b. **Continue until all `applyRequires` artifacts are complete**
+      - After creating each artifact, re-run `openspec status --change "<name>" --json`
+      - Check if every artifact ID in `applyRequires` has `status: "done"` in the artifacts array
+      - Stop when all `applyRequires` artifacts are done
+
+   c. **If an artifact requires user input** (unclear context):
+      - Use **AskUserQuestion tool** to clarify
+      - Then continue with creation
+
+5. **Show final status**
+   ```bash
+   openspec status --change "<name>"
+   ```
+
+**Output**
+
+After completing all artifacts, summarize:
+- Change name and location
+- List of artifacts created with brief descriptions
+- What's ready: "All artifacts created! Ready for implementation."
+- Prompt: "Run `/opsx:apply` or ask me to implement to start working on the tasks."
+
+**Artifact Creation Guidelines**
+
+- Follow the `instruction` field from `openspec instructions` for each artifact type
+- The schema defines what each artifact should contain - follow it
+- Read dependency artifacts for context before creating new ones
+- Use `template` as the structure for your output file - fill in its sections
+- **IMPORTANT**: `context` and `rules` are constraints for YOU, not content for the file
+  - Do NOT copy `<context>`, `<rules>`, `<project_context>` blocks into the artifact
+  - These guide what you write, but should never appear in the output
+
+**Guardrails**
+- Create ALL artifacts needed for implementation (as defined by schema's `apply.requires`)
+- Always read dependency artifacts before creating a new one
+- If context is critically unclear, ask the user - but prefer making reasonable decisions to keep momentum
+- If a change with that name already exists, ask if user wants to continue it or create a new one
+- Verify each artifact file exists after writing before proceeding to next
+</manually_attached_skills>
+<timestamp>Thursday, Apr 30, 2026, 11:11 PM (UTC+10)</timestamp>
+
+bro ignore githu it works its anslhq/reck dont worry i cehcked just proceed addingthe rename to openspec and yuore supposed to do /openspec-ff-change this is a diff workflow /openspec-propose
+
+---
+
+<timestamp>Thursday, Apr 30, 2026, 11:16 PM (UTC+10)</timestamp>
+
+whyy is there 2 change?? everything shuld be in 1 riht??
+
+---
+
+Findings
+OpenSpec is internally inconsistent about the rename, so it cannot currently serve as a clean source of truth for the product transition.
+openspec/changes/build-reelink-mcp/design.md says the public identity changes to Reck, including package, binaries, MCP prefix, env vars, storage root, and package folder, but the same file still uses old names for the core API, install flow, folder examples, and product narrative. proposal.md has the same problem: it declares a breaking rename to Reck while still specifying bunx -y reelink, reelink_* tools, .reelink/, and “Reelink” as the active product in many normative statements. video-finding-analysis/spec.md is even more conflicted because it adds a “Reck” scenario while leaving the canonical scenarios and reconciliation guardrails centered on reelink_*.
+This is the highest-severity issue because PRODUCT.md and the new reck-product-identity spec imply a decisive rename, while the rest of OpenSpec still describes a hybrid state with no explicit compatibility window structure. That means implementers can truthfully “follow the spec” and still produce incompatible outcomes.
+
+tasks.md still overclaims implementation/verification relative to the product bar defined in PRODUCT.md and reinforced by GAPLIST.md.
+The status table in openspec/changes/build-reelink-mcp/tasks.md says Layer 1, Layer 2, provider strategy, package semantics, and workflow proof are “implemented” with remediation remaining, and many downstream tasks in P2/P3 are written as verified by tests/smokes. But PRODUCT.md explicitly says Layer 1 is not complete until runtime is verified on a real supported app, and Layer 2 is not complete until the public workflow is proven end-to-end. GAPLIST.md carries the same standard.
+So even though tasks.md is better than older versions, it still reads too close to “feature done, proof polishing left” instead of “major product claims still pending real-app/client-grade verification.” That mismatch matters because OpenSpec task status is exactly where false completion pressure creeps back in.
+
+OpenSpec still encodes hackathon-era framing that conflicts with the current product definition.
+design.md still includes goals like “Provide a hackathon plan that can demo video-to-finding quickly” and long demo-specific sections around founder portfolio bugs. That historical context is useful, but in the current state it is mixed into normative design text rather than clearly separated as historical execution context. PRODUCT.md defines a production-grade open-source dev tool, and your current direction is explicitly “well past the hackathon.”
+As written, OpenSpec still partly frames the product around the demo and submission path, which weakens alignment with both PRODUCT.md and GAPLIST.md.
+
+The product contract around findings vs work_items is improved but still not fully resolved across OpenSpec.
+video-finding-analysis/spec.md correctly says findings remains the public authority and any public work_items field must be treated as compatibility/detail output. But design.md still uses reelink_analyze examples that normalize older shapes, and tasks.md still includes old success criteria phrased around work_items in places.
+This is a medium-high issue because PRODUCT.md and GAPLIST.md both identify this as a core contract decision, and OpenSpec still reads like it wants both clarity and ambiguity at the same time.
+
+OpenSpec’s doc-path and package-path expectations are inconsistent with the rename plan.
+video-finding-analysis/spec.md still says onboarding docs must exist under reelink/docs/, while reck-product-identity/spec.md says the package folder should become reck/. design.md also says the root package folder becomes reck/, but many referenced paths remain under reelink/ and many examples still use .reelink/.
+That creates a practical migration ambiguity: is the rename intended to be purely public-facing first, or does OpenSpec require an immediate filesystem/package rename too? Right now it implies both, but not cleanly.
+
+The Codex/client onboarding requirements are still tied to old naming and commands, so they conflict with the new identity spec.
+video-finding-analysis/spec.md still requires writing [mcp_servers.reelink], verifying reelink is running, and calling reelink_analyze, while the new identity spec requires reck_* as the public MCP surface and reck / reck-mcp binaries.
+This is a concrete example of why the rename is not yet spec-coherent: even the “canonical client” flow can’t be implemented exactly as written once the rename is enforced.
+
+PRODUCT.md and GAPLIST.md are now out of sync with the current OpenSpec rename decision.
+This is not an OpenSpec bug alone, but it is a real alignment problem. Both files still present Reelink as the current product identity, while OpenSpec now says the final public identity is Reck. Since you asked for review against those files, the honest answer is that they are no longer fully aligned.
+If Reck is the settled name, then PRODUCT.md and GAPLIST.md need a rename-aware revision. If Reck is still provisional, OpenSpec is prematurely acting as though the rename is locked.
+
+---
+
+Findings
+OpenSpec is internally inconsistent about the rename, so it cannot currently serve as a clean source of truth for the product transition.
+openspec/changes/build-reelink-mcp/design.md says the public identity changes to Reck, including package, binaries, MCP prefix, env vars, storage root, and package folder, but the same file still uses old names for the core API, install flow, folder examples, and product narrative. proposal.md has the same problem: it declares a breaking rename to Reck while still specifying bunx -y reelink, reelink_* tools, .reelink/, and “Reelink” as the active product in many normative statements. video-finding-analysis/spec.md is even more conflicted because it adds a “Reck” scenario while leaving the canonical scenarios and reconciliation guardrails centered on reelink_*.
+This is the highest-severity issue because PRODUCT.md and the new reck-product-identity spec imply a decisive rename, while the rest of OpenSpec still describes a hybrid state with no explicit compatibility window structure. That means implementers can truthfully “follow the spec” and still produce incompatible outcomes.
+
+tasks.md still overclaims implementation/verification relative to the product bar defined in PRODUCT.md and reinforced by GAPLIST.md.
+The status table in openspec/changes/build-reelink-mcp/tasks.md says Layer 1, Layer 2, provider strategy, package semantics, and workflow proof are “implemented” with remediation remaining, and many downstream tasks in P2/P3 are written as verified by tests/smokes. But PRODUCT.md explicitly says Layer 1 is not complete until runtime is verified on a real supported app, and Layer 2 is not complete until the public workflow is proven end-to-end. GAPLIST.md carries the same standard.
+So even though tasks.md is better than older versions, it still reads too close to “feature done, proof polishing left” instead of “major product claims still pending real-app/client-grade verification.” That mismatch matters because OpenSpec task status is exactly where false completion pressure creeps back in.
+
+OpenSpec still encodes hackathon-era framing that conflicts with the current product definition.
+design.md still includes goals like “Provide a hackathon plan that can demo video-to-finding quickly” and long demo-specific sections around founder portfolio bugs. That historical context is useful, but in the current state it is mixed into normative design text rather than clearly separated as historical execution context. PRODUCT.md defines a production-grade open-source dev tool, and your current direction is explicitly “well past the hackathon.”
+As written, OpenSpec still partly frames the product around the demo and submission path, which weakens alignment with both PRODUCT.md and GAPLIST.md.
+
+The product contract around findings vs work_items is improved but still not fully resolved across OpenSpec.
+video-finding-analysis/spec.md correctly says findings remains the public authority and any public work_items field must be treated as compatibility/detail output. But design.md still uses reelink_analyze examples that normalize older shapes, and tasks.md still includes old success criteria phrased around work_items in places.
+This is a medium-high issue because PRODUCT.md and GAPLIST.md both identify this as a core contract decision, and OpenSpec still reads like it wants both clarity and ambiguity at the same time.
+
+OpenSpec’s doc-path and package-path expectations are inconsistent with the rename plan.
+video-finding-analysis/spec.md still says onboarding docs must exist under reelink/docs/, while reck-product-identity/spec.md says the package folder should become reck/. design.md also says the root package folder becomes reck/, but many referenced paths remain under reelink/ and many examples still use .reelink/.
+That creates a practical migration ambiguity: is the rename intended to be purely public-facing first, or does OpenSpec require an immediate filesystem/package rename too? Right now it implies both, but not cleanly.
+
+The Codex/client onboarding requirements are still tied to old naming and commands, so they conflict with the new identity spec.
+video-finding-analysis/spec.md still requires writing [mcp_servers.reelink], verifying reelink is running, and calling reelink_analyze, while the new identity spec requires reck_* as the public MCP surface and reck / reck-mcp binaries.
+This is a concrete example of why the rename is not yet spec-coherent: even the “canonical client” flow can’t be implemented exactly as written once the rename is enforced.
+
+PRODUCT.md and GAPLIST.md are now out of sync with the current OpenSpec rename decision.
+This is not an OpenSpec bug alone, but it is a real alignment problem. Both files still present Reelink as the current product identity, while OpenSpec now says the final public identity is Reck. Since you asked for review against those files, the honest answer is that they are no longer fully aligned.
+If Reck is the settled name, then PRODUCT.md and GAPLIST.md need a rename-aware revision. If Reck is still provisional, OpenSpec is prematurely acting as though the rename is locked.
+
+---
+
+Findings
+OpenSpec is internally inconsistent about the rename, so it cannot currently serve as a clean source of truth for the product transition.
+openspec/changes/build-reelink-mcp/design.md says the public identity changes to Reck, including package, binaries, MCP prefix, env vars, storage root, and package folder, but the same file still uses old names for the core API, install flow, folder examples, and product narrative. proposal.md has the same problem: it declares a breaking rename to Reck while still specifying bunx -y reelink, reelink_* tools, .reelink/, and “Reelink” as the active product in many normative statements. video-finding-analysis/spec.md is even more conflicted because it adds a “Reck” scenario while leaving the canonical scenarios and reconciliation guardrails centered on reelink_*.
+This is the highest-severity issue because PRODUCT.md and the new reck-product-identity spec imply a decisive rename, while the rest of OpenSpec still describes a hybrid state with no explicit compatibility window structure. That means implementers can truthfully “follow the spec” and still produce incompatible outcomes.
+
+tasks.md still overclaims implementation/verification relative to the product bar defined in PRODUCT.md and reinforced by GAPLIST.md.
+The status table in openspec/changes/build-reelink-mcp/tasks.md says Layer 1, Layer 2, provider strategy, package semantics, and workflow proof are “implemented” with remediation remaining, and many downstream tasks in P2/P3 are written as verified by tests/smokes. But PRODUCT.md explicitly says Layer 1 is not complete until runtime is verified on a real supported app, and Layer 2 is not complete until the public workflow is proven end-to-end. GAPLIST.md carries the same standard.
+So even though tasks.md is better than older versions, it still reads too close to “feature done, proof polishing left” instead of “major product claims still pending real-app/client-grade verification.” That mismatch matters because OpenSpec task status is exactly where false completion pressure creeps back in.
+
+OpenSpec still encodes hackathon-era framing that conflicts with the current product definition.
+design.md still includes goals like “Provide a hackathon plan that can demo video-to-finding quickly” and long demo-specific sections around founder portfolio bugs. That historical context is useful, but in the current state it is mixed into normative design text rather than clearly separated as historical execution context. PRODUCT.md defines a production-grade open-source dev tool, and your current direction is explicitly “well past the hackathon.”
+As written, OpenSpec still partly frames the product around the demo and submission path, which weakens alignment with both PRODUCT.md and GAPLIST.md.
+
+The product contract around findings vs work_items is improved but still not fully resolved across OpenSpec.
+video-finding-analysis/spec.md correctly says findings remains the public authority and any public work_items field must be treated as compatibility/detail output. But design.md still uses reelink_analyze examples that normalize older shapes, and tasks.md still includes old success criteria phrased around work_items in places.
+This is a medium-high issue because PRODUCT.md and GAPLIST.md both identify this as a core contract decision, and OpenSpec still reads like it wants both clarity and ambiguity at the same time.
+
+OpenSpec’s doc-path and package-path expectations are inconsistent with the rename plan.
+video-finding-analysis/spec.md still says onboarding docs must exist under reelink/docs/, while reck-product-identity/spec.md says the package folder should become reck/. design.md also says the root package folder becomes reck/, but many referenced paths remain under reelink/ and many examples still use .reelink/.
+That creates a practical migration ambiguity: is the rename intended to be purely public-facing first, or does OpenSpec require an immediate filesystem/package rename too? Right now it implies both, but not cleanly.
+
+The Codex/client onboarding requirements are still tied to old naming and commands, so they conflict with the new identity spec.
+video-finding-analysis/spec.md still requires writing [mcp_servers.reelink], verifying reelink is running, and calling reelink_analyze, while the new identity spec requires reck_* as the public MCP surface and reck / reck-mcp binaries.
+This is a concrete example of why the rename is not yet spec-coherent: even the “canonical client” flow can’t be implemented exactly as written once the rename is enforced.
+
+PRODUCT.md and GAPLIST.md are now out of sync with the current OpenSpec rename decision.
+This is not an OpenSpec bug alone, but it is a real alignment problem. Both files still present Reelink as the current product identity, while OpenSpec now says the final public identity is Reck. Since you asked for review against those files, the honest answer is that they are no longer fully aligned.
+If Reck is the settled name, then PRODUCT.md and GAPLIST.md need a rename-aware revision. If Reck is still provisional, OpenSpec is prematurely acting as though the rename is locked.
+OpenSpec Patch List
+This is a spec-only patch list for:
+
+openspec/changes/build-reelink-mcp/design.md
+openspec/changes/build-reelink-mcp/proposal.md
+openspec/changes/build-reelink-mcp/tasks.md
+openspec/specs/video-finding-analysis/spec.md
+Goal: make OpenSpec align with:
+
+PRODUCT.md
+GAPLIST.md
+the settled rename to Reck
+the “end state, not hybrid mush” rule
+1. design.md
+A. Rewrite the identity and thesis sections to use end-state naming only
+Problem: design.md declares the rename, then keeps using Reelink, reelink_*, .reelink/, and bunx -y reelink as normative examples.
+
+Patch:
+
+Replace the opening context framing so the current product name is Reck, not Reelink.
+Keep one short migration note saying “Reelink was the previous working name.”
+Remove mixed identity phrasing where the body still treats Reelink as the live public identity.
+Rewrite targets:
+
+## Context
+## Reck Rename
+any section that says “Reelink should…” as normative product text
+Desired rule:
+
+Current product identity: Reck
+Legacy compatibility references: explicitly marked legacy only
+B. Rewrite all public API examples to reck_*
+Problem: Design locks reck_* as final public API, but examples still define reelink_*.
+
+Patch: Replace the full public tool list under the stable API decision.
+
+Change from conceptually:
+
+reelink_analyze -> reck_analyze
+reelink_get_finding -> reck_get_finding
+reelink_get_frame -> reck_get_frame
+reelink_get_dom -> reck_get_dom
+reelink_get_components -> reck_get_components
+reelink_query -> reck_query
+reelink_run -> reck_run
+reelink_browser_* -> reck_browser_*
+Add one explicit compatibility paragraph:
+
+Old reelink_* names may exist only as temporary aliases.
+If retained, aliases must be documented, tested, and given removal criteria.
+They are not the primary public contract.
+C. Rewrite package, binary, env, and storage examples to Reck
+Problem: rename section says @anslai/reck, reck, .reck/, RECK_*, but later decisions still specify old names.
+
+Patch: Update:
+
+bunx -y reelink -> bunx -y @anslai/reck
+bun install -g reelink -> install/use reck
+.reelink/ -> .reck/
+REELINK_* -> RECK_*
+reelink-mcp -> reck-mcp
+package folder reelink/ -> reck/
+Important nuance to add:
+
+Old .reelink/ recordings may be read through documented legacy lookup.
+New writes go to .reck/.
+Same rule for REELINK_*: read only as migration compatibility, prefer RECK_*.
+D. Remove hackathon language from normative design
+Problem: design.md still includes hackathon goals as if they are current product goals.
+
+Patch: Remove or downgrade phrases like:
+
+“Provide a hackathon plan...”
+demo-specific execution language in the product-goal section
+Keep only if moved under a clearly labeled historical section:
+
+## Historical Execution Context or
+delete entirely from design
+Design should instead say:
+
+Layer 0 is the adoption wedge
+Layer 1 is the architectural unlock
+Layer 2 is the agentic primitive
+That matches PRODUCT.md.
+
+E. Tighten completion definition around proof, not code presence
+Problem: design is better now, but still needs harder language matching GAPLIST.md.
+
+Patch: In ## Authority and Completion Definition, add explicit rules:
+
+Layer 1 is not complete from code existence, fixture tests, or smoke-only evidence.
+Layer 2 is not complete from code existence, fixture tests, or smoke-only evidence.
+Completion requires real-app verification for Layer 1 and real workflow verification for Layer 2.
+Docs/OpenSpec must not mark a layer complete ahead of proof.
+F. Resolve findings vs work_items
+Problem: design still leaves too much contract ambiguity.
+
+Patch: Under stable API/public contract section, add an explicit end-state contract block:
+
+Recommended wording:
+
+findings is the canonical public Layer 0 contract.
+work_items may exist only as compatibility/detail output during a documented transition window.
+If retained, tests must cover dual-shape behavior and docs must state removal criteria.
+No new public docs should present work_items as the headline Layer 0 response.
+G. Rename internal examples for Layer 0/1/2
+Patch examples:
+
+reelink_analyze(path...) -> reck_analyze(path...)
+reelink_run(task_description, target_url) -> reck_run(task_description, target_url)
+my-bug.reelink/ -> my-bug.reck/
+.reelink/browser-recordings/<id> -> .reck/browser-recordings/<id>
+2. proposal.md
+A. Rewrite the proposal summary to be fully Reck-native
+Problem: proposal announces Reck but still describes the change in Reelink terms.
+
+Patch: Update:
+
+opening “Why” paragraph
+“What Changes”
+“Capabilities”
+“Impact”
+So the live product is Reck throughout.
+
+B. Fix the contradictory install/launch lines
+Problem: proposal says rename to Reck, but still says production is bunx -y reelink.
+
+Patch: Change proposal-wide:
+
+bunx -y reelink -> bunx -y @anslai/reck
+reelink binary -> reck
+reelink-mcp -> reck-mcp
+If you want migration language, add:
+
+legacy linked/local testing may still mention old binaries temporarily
+but proposal must mark those as legacy/dev-only
+C. Rewrite the MCP story to use reck_*
+Patch: In “What Changes” and “Capabilities”:
+
+replace every public reelink_* tool reference with reck_*
+replace reelink_browser_* with reck_browser_*
+D. Rewrite package/storage/env references
+Patch:
+
+.reelink/ -> .reck/
+REELINK_* -> RECK_*
+reelink/docs/ path references should be revisited depending on whether package folder rename is immediate
+if folder rename is part of the same change, use reck/docs/
+if not immediate, label reelink/docs/ as current implementation path, not final public identity
+E. Remove hackathon framing from proposal impact
+Problem: proposal still carries wedge/demo/hackathon emphasis in a way that undershoots current product scope.
+
+Patch: Keep “Layer 0 is the wedge” but remove language that frames the product as primarily hackathon-oriented. Proposal should read as a production OSS feature proposal with:
+
+wedge
+full product
+rename
+verification requirements
+F. Add explicit compatibility scope
+Patch block to add near rename section:
+
+Legacy reelink_*, REELINK_*, .reelink/, and reelink-mcp may be retained only as transitional compatibility behavior.
+OpenSpec must specify:
+where each legacy name still works
+which surfaces are already Reck-only
+what tests validate compatibility
+what removes the compatibility path later
+3. tasks.md
+This file needs the heaviest cleanup because it drives fake completion if left fuzzy.
+
+A. Rewrite the status table to reflect proof reality
+Problem: status rows still read too optimistically relative to PRODUCT.md and GAPLIST.md.
+
+Patch each row like this:
+
+Reck rename
+from Pending implementation
+to something like: Specified in OpenSpec / not implemented in public surfaces
+
+Layer 0 video analysis
+keep as implemented, but explicitly say: public contract and rename migration still pending
+
+Layer 1 recording package
+from Implemented / requires real-app proof
+to Substantially implemented / not yet real-app-verified / not complete
+
+Layer 2 reelink_run
+rename row to Layer 2 reck_run
+status: Partially implemented / not yet workflow-verified / not complete
+
+Provider strategy
+status should distinguish:
+
+primary raw-video path implemented
+fallback claims not all verified
+rename not yet propagated
+Product DevX
+status should explicitly say:
+
+current onboarding path inconsistent with final Reck identity
+not release-ready
+B. Rename every public task from Reelink to Reck
+Patch: Where tasks refer to public behavior:
+
+reelink_* -> reck_*
+reelink init -> reck init
+reelink doctor -> reck doctor
+reelink_run -> reck_run
+For migration tasks, mention both only when necessary:
+
+“rename old reelink_* public tools to reck_*”
+“document/test temporary aliases if retained”
+C. Make the rename tasks explicit and ordered
+Add a dedicated top block under Active Remediation:
+
+rename public identity in docs/specs/package metadata
+rename public binaries/CLI
+rename MCP prefixes
+rename env vars
+rename storage root
+decide alias compatibility policy
+test legacy behavior
+update onboarding docs and examples
+update final verification commands
+Right now these items exist, but they need to be stricter and grouped as a dependency chain.
+
+D. Remove or rewrite old production directions
+Problem: tasks.md still centers bunx -y reelink, reelink doctor, reelink init, and reelink_* as the required public target while also claiming Reck.
+
+Patch: Replace the “Production launch direction” section with Reck-native commands:
+
+bunx -y @anslai/reck init
+bunx -y @anslai/reck doctor
+installed reck init
+installed reck doctor
+Then add one migration note:
+
+linked reelink-mcp is legacy/local-dev-only if still temporarily supported
+E. Rewrite the required public MCP surface target
+Problem: this section is still entirely reelink_*.
+
+Patch: Change the required public surface target to:
+
+reck_analyze
+reck_get_finding
+reck_get_frame
+reck_get_dom
+reck_get_components
+reck_query
+reck_record_start
+reck_record_stop
+reck_record_status
+reck_browser_snapshot
+reck_browser_click
+reck_browser_type
+reck_browser_navigate
+reck_browser_wait
+reck_browser_evaluate
+reck_browser_take_screenshot
+reck_run
+Then append:
+
+any temporary reelink_* aliases are compatibility-only and not part of the primary public target
+F. Rewrite P0/P1/P2/P3/P4 task wording so proof levels are harder
+Problem: many task lines say “verified by tests and smokes” in places where GAPLIST.md still says proof is insufficient.
+
+Patch pattern: Replace phrases like:
+
+“Verified by tests and browser recording smokes” with:
+“Implemented and smoke-verified; does not satisfy real-app verification or final completion on its own”
+Apply especially to:
+
+P2.3 through P2.21
+P3.1 through P3.14
+G. Remove stale reinstatement of GPT fallback if it conflicts with current product language
+There is a task line re-approving GPT/OpenAI fallback. That may still be okay technically, but it should be rewritten to match the product contract:
+
+deterministic-first
+opt-in only
+not primary
+not implied as the main query path
+H. Rename filesystem path tasks
+Patch:
+
+.reelink/ -> .reck/ for all new writes
+old .reelink/ read support must be explicitly tagged as migration compatibility
+if reelink/ package folder remains temporarily, tasks.md must say whether that is:
+current implementation path pending rename
+or an intentional exception
+Right now it reads like the final rename is required, so the tasks need to reflect that sharply.
+
+4. video-finding-analysis/spec.md
+This spec needs careful cleanup because it now mixes old and new identity rules in the same requirement set.
+
+A. Rewrite the onboarding requirement from Reelink to Reck
+Current problem: it still requires [mcp_servers.reelink], reelink_analyze, and “Reelink” in the canonical Codex flow.
+
+Patch: Change:
+
+[mcp_servers.reelink] -> final Reck config target
+reelink running -> reck running
+reelink_analyze -> reck_analyze
+If legacy naming remains supported, add a separate compatibility scenario:
+
+old config block may still be recognized temporarily
+but final onboarding docs must use Reck
+B. Rewrite the Layer 0 requirement to use Reck public naming
+Patch:
+
+“Imported video is analyzed through Reck” should become the canonical scenario, not an extra add-on
+reck_analyze should be the primary tool named everywhere
+.reck/ should be the primary write location everywhere
+C. Rewrite the reconciliation guardrails section
+Current problem: it says findings is authoritative, but still phrases proof in terms of reelink_analyze.
+
+Patch: Rewrite the section so it says:
+
+the canonical public Layer 0 contract is reck_analyze -> {recording_id, duration_sec, summary, findings, next_steps}
+any work_items field is compatibility/detail output only
+status updates must cite code/test evidence for the Reck-named public contract
+any temporary alias behavior must be documented as migration-only
+D. Fix the onboarding-doc path contradiction
+Problem: spec still says onboarding docs must exist under reelink/docs/, but rename spec says folder becomes reck/.
+
+Patch: Replace with one explicit rule:
+
+docs must exist under the active package/docs path for the current implementation
+if package folder rename is part of this change, use reck/docs/
+if package folder rename is deferred, mark reelink/docs/ as implementation path and reck as public identity
+Do not leave both implied.
+
+E. Add a dedicated migration scenario for old tool/config names
+Add scenarios like:
+
+if old reelink_* aliases exist, they are temporary and tested
+if old config blocks or storage roots are read, behavior is documented
+no completion claim until alias/migration behavior is either removed or tested
+That makes the rename practical instead of magical.
+
+Cross-file patch rules
+Apply these across all four files:
+
+1. End-state rule
+OpenSpec should describe the final intended product state:
+
+public product = Reck
+public CLI = reck
+public MCP = reck_*
+public storage = .reck/
+public env prefix = RECK_*
+2. Compatibility rule
+Any old Reelink naming must be:
+
+explicitly marked legacy
+scoped to exact surfaces
+tested if still supported
+given removal criteria
+3. Verification rule
+Use these distinctions consistently:
+
+implemented
+unit-tested
+smoke-verified
+real-app-verified
+client-verified
+complete
+And never let implemented or smoke-verified read like complete.
+
+4. Product framing rule
+Remove hackathon/demo framing from normative product definition sections. Keep only:
+
+wedge
+full product
+proof requirements
+migration policy
+5. Contract rule
+Make findings the public Layer 0 authority everywhere unless you intentionally want a documented dual-shape transition.
+
+---
+
+Findings
+OpenSpec is internally inconsistent about the rename, so it cannot currently serve as a clean source of truth for the product transition.
+openspec/changes/build-reelink-mcp/design.md says the public identity changes to Reck, including package, binaries, MCP prefix, env vars, storage root, and package folder, but the same file still uses old names for the core API, install flow, folder examples, and product narrative. proposal.md has the same problem: it declares a breaking rename to Reck while still specifying bunx -y reelink, reelink_* tools, .reelink/, and “Reelink” as the active product in many normative statements. video-finding-analysis/spec.md is even more conflicted because it adds a “Reck” scenario while leaving the canonical scenarios and reconciliation guardrails centered on reelink_*.
+This is the highest-severity issue because PRODUCT.md and the new reck-product-identity spec imply a decisive rename, while the rest of OpenSpec still describes a hybrid state with no explicit compatibility window structure. That means implementers can truthfully “follow the spec” and still produce incompatible outcomes.
+
+tasks.md still overclaims implementation/verification relative to the product bar defined in PRODUCT.md and reinforced by GAPLIST.md.
+The status table in openspec/changes/build-reelink-mcp/tasks.md says Layer 1, Layer 2, provider strategy, package semantics, and workflow proof are “implemented” with remediation remaining, and many downstream tasks in P2/P3 are written as verified by tests/smokes. But PRODUCT.md explicitly says Layer 1 is not complete until runtime is verified on a real supported app, and Layer 2 is not complete until the public workflow is proven end-to-end. GAPLIST.md carries the same standard.
+So even though tasks.md is better than older versions, it still reads too close to “feature done, proof polishing left” instead of “major product claims still pending real-app/client-grade verification.” That mismatch matters because OpenSpec task status is exactly where false completion pressure creeps back in.
+
+OpenSpec still encodes hackathon-era framing that conflicts with the current product definition.
+design.md still includes goals like “Provide a hackathon plan that can demo video-to-finding quickly” and long demo-specific sections around founder portfolio bugs. That historical context is useful, but in the current state it is mixed into normative design text rather than clearly separated as historical execution context. PRODUCT.md defines a production-grade open-source dev tool, and your current direction is explicitly “well past the hackathon.”
+As written, OpenSpec still partly frames the product around the demo and submission path, which weakens alignment with both PRODUCT.md and GAPLIST.md.
+
+The product contract around findings vs work_items is improved but still not fully resolved across OpenSpec.
+video-finding-analysis/spec.md correctly says findings remains the public authority and any public work_items field must be treated as compatibility/detail output. But design.md still uses reelink_analyze examples that normalize older shapes, and tasks.md still includes old success criteria phrased around work_items in places.
+This is a medium-high issue because PRODUCT.md and GAPLIST.md both identify this as a core contract decision, and OpenSpec still reads like it wants both clarity and ambiguity at the same time.
+
+OpenSpec’s doc-path and package-path expectations are inconsistent with the rename plan.
+video-finding-analysis/spec.md still says onboarding docs must exist under reelink/docs/, while reck-product-identity/spec.md says the package folder should become reck/. design.md also says the root package folder becomes reck/, but many referenced paths remain under reelink/ and many examples still use .reelink/.
+That creates a practical migration ambiguity: is the rename intended to be purely public-facing first, or does OpenSpec require an immediate filesystem/package rename too? Right now it implies both, but not cleanly.
+
+The Codex/client onboarding requirements are still tied to old naming and commands, so they conflict with the new identity spec.
+video-finding-analysis/spec.md still requires writing [mcp_servers.reelink], verifying reelink is running, and calling reelink_analyze, while the new identity spec requires reck_* as the public MCP surface and reck / reck-mcp binaries.
+This is a concrete example of why the rename is not yet spec-coherent: even the “canonical client” flow can’t be implemented exactly as written once the rename is enforced.
+
+PRODUCT.md and GAPLIST.md are now out of sync with the current OpenSpec rename decision.
+This is not an OpenSpec bug alone, but it is a real alignment problem. Both files still present Reelink as the current product identity, while OpenSpec now says the final public identity is Reck. Since you asked for review against those files, the honest answer is that they are no longer fully aligned.
+If Reck is the settled name, then PRODUCT.md and GAPLIST.md need a rename-aware revision. If Reck is still provisional, OpenSpec is prematurely acting as though the rename is locked.
+OpenSpec Patch List
+This is a spec-only patch list for:
+
+openspec/changes/build-reelink-mcp/design.md
+openspec/changes/build-reelink-mcp/proposal.md
+openspec/changes/build-reelink-mcp/tasks.md
+openspec/specs/video-finding-analysis/spec.md
+Goal: make OpenSpec align with:
+
+PRODUCT.md
+GAPLIST.md
+the settled rename to Reck
+the “end state, not hybrid mush” rule
+1. design.md
+A. Rewrite the identity and thesis sections to use end-state naming only
+Problem: design.md declares the rename, then keeps using Reelink, reelink_*, .reelink/, and bunx -y reelink as normative examples.
+
+Patch:
+
+Replace the opening context framing so the current product name is Reck, not Reelink.
+Keep one short migration note saying “Reelink was the previous working name.”
+Remove mixed identity phrasing where the body still treats Reelink as the live public identity.
+Rewrite targets:
+
+## Context
+## Reck Rename
+any section that says “Reelink should…” as normative product text
+Desired rule:
+
+Current product identity: Reck
+Legacy compatibility references: explicitly marked legacy only
+B. Rewrite all public API examples to reck_*
+Problem: Design locks reck_* as final public API, but examples still define reelink_*.
+
+Patch: Replace the full public tool list under the stable API decision.
+
+Change from conceptually:
+
+reelink_analyze -> reck_analyze
+reelink_get_finding -> reck_get_finding
+reelink_get_frame -> reck_get_frame
+reelink_get_dom -> reck_get_dom
+reelink_get_components -> reck_get_components
+reelink_query -> reck_query
+reelink_run -> reck_run
+reelink_browser_* -> reck_browser_*
+Add one explicit compatibility paragraph:
+
+Old reelink_* names may exist only as temporary aliases.
+If retained, aliases must be documented, tested, and given removal criteria.
+They are not the primary public contract.
+C. Rewrite package, binary, env, and storage examples to Reck
+Problem: rename section says @anslai/reck, reck, .reck/, RECK_*, but later decisions still specify old names.
+
+Patch: Update:
+
+bunx -y reelink -> bunx -y @anslai/reck
+bun install -g reelink -> install/use reck
+.reelink/ -> .reck/
+REELINK_* -> RECK_*
+reelink-mcp -> reck-mcp
+package folder reelink/ -> reck/
+Important nuance to add:
+
+Old .reelink/ recordings may be read through documented legacy lookup.
+New writes go to .reck/.
+Same rule for REELINK_*: read only as migration compatibility, prefer RECK_*.
+D. Remove hackathon language from normative design
+Problem: design.md still includes hackathon goals as if they are current product goals.
+
+Patch: Remove or downgrade phrases like:
+
+“Provide a hackathon plan...”
+demo-specific execution language in the product-goal section
+Keep only if moved under a clearly labeled historical section:
+
+## Historical Execution Context or
+delete entirely from design
+Design should instead say:
+
+Layer 0 is the adoption wedge
+Layer 1 is the architectural unlock
+Layer 2 is the agentic primitive
+That matches PRODUCT.md.
+
+E. Tighten completion definition around proof, not code presence
+Problem: design is better now, but still needs harder language matching GAPLIST.md.
+
+Patch: In ## Authority and Completion Definition, add explicit rules:
+
+Layer 1 is not complete from code existence, fixture tests, or smoke-only evidence.
+Layer 2 is not complete from code existence, fixture tests, or smoke-only evidence.
+Completion requires real-app verification for Layer 1 and real workflow verification for Layer 2.
+Docs/OpenSpec must not mark a layer complete ahead of proof.
+F. Resolve findings vs work_items
+Problem: design still leaves too much contract ambiguity.
+
+Patch: Under stable API/public contract section, add an explicit end-state contract block:
+
+Recommended wording:
+
+findings is the canonical public Layer 0 contract.
+work_items may exist only as compatibility/detail output during a documented transition window.
+If retained, tests must cover dual-shape behavior and docs must state removal criteria.
+No new public docs should present work_items as the headline Layer 0 response.
+G. Rename internal examples for Layer 0/1/2
+Patch examples:
+
+reelink_analyze(path...) -> reck_analyze(path...)
+reelink_run(task_description, target_url) -> reck_run(task_description, target_url)
+my-bug.reelink/ -> my-bug.reck/
+.reelink/browser-recordings/<id> -> .reck/browser-recordings/<id>
+2. proposal.md
+A. Rewrite the proposal summary to be fully Reck-native
+Problem: proposal announces Reck but still describes the change in Reelink terms.
+
+Patch: Update:
+
+opening “Why” paragraph
+“What Changes”
+“Capabilities”
+“Impact”
+So the live product is Reck throughout.
+
+B. Fix the contradictory install/launch lines
+Problem: proposal says rename to Reck, but still says production is bunx -y reelink.
+
+Patch: Change proposal-wide:
+
+bunx -y reelink -> bunx -y @anslai/reck
+reelink binary -> reck
+reelink-mcp -> reck-mcp
+If you want migration language, add:
+
+legacy linked/local testing may still mention old binaries temporarily
+but proposal must mark those as legacy/dev-only
+C. Rewrite the MCP story to use reck_*
+Patch: In “What Changes” and “Capabilities”:
+
+replace every public reelink_* tool reference with reck_*
+replace reelink_browser_* with reck_browser_*
+D. Rewrite package/storage/env references
+Patch:
+
+.reelink/ -> .reck/
+REELINK_* -> RECK_*
+reelink/docs/ path references should be revisited depending on whether package folder rename is immediate
+if folder rename is part of the same change, use reck/docs/
+if not immediate, label reelink/docs/ as current implementation path, not final public identity
+E. Remove hackathon framing from proposal impact
+Problem: proposal still carries wedge/demo/hackathon emphasis in a way that undershoots current product scope.
+
+Patch: Keep “Layer 0 is the wedge” but remove language that frames the product as primarily hackathon-oriented. Proposal should read as a production OSS feature proposal with:
+
+wedge
+full product
+rename
+verification requirements
+F. Add explicit compatibility scope
+Patch block to add near rename section:
+
+Legacy reelink_*, REELINK_*, .reelink/, and reelink-mcp may be retained only as transitional compatibility behavior.
+OpenSpec must specify:
+where each legacy name still works
+which surfaces are already Reck-only
+what tests validate compatibility
+what removes the compatibility path later
+3. tasks.md
+This file needs the heaviest cleanup because it drives fake completion if left fuzzy.
+
+A. Rewrite the status table to reflect proof reality
+Problem: status rows still read too optimistically relative to PRODUCT.md and GAPLIST.md.
+
+Patch each row like this:
+
+Reck rename
+from Pending implementation
+to something like: Specified in OpenSpec / not implemented in public surfaces
+
+Layer 0 video analysis
+keep as implemented, but explicitly say: public contract and rename migration still pending
+
+Layer 1 recording package
+from Implemented / requires real-app proof
+to Substantially implemented / not yet real-app-verified / not complete
+
+Layer 2 reelink_run
+rename row to Layer 2 reck_run
+status: Partially implemented / not yet workflow-verified / not complete
+
+Provider strategy
+status should distinguish:
+
+primary raw-video path implemented
+fallback claims not all verified
+rename not yet propagated
+Product DevX
+status should explicitly say:
+
+current onboarding path inconsistent with final Reck identity
+not release-ready
+B. Rename every public task from Reelink to Reck
+Patch: Where tasks refer to public behavior:
+
+reelink_* -> reck_*
+reelink init -> reck init
+reelink doctor -> reck doctor
+reelink_run -> reck_run
+For migration tasks, mention both only when necessary:
+
+“rename old reelink_* public tools to reck_*”
+“document/test temporary aliases if retained”
+C. Make the rename tasks explicit and ordered
+Add a dedicated top block under Active Remediation:
+
+rename public identity in docs/specs/package metadata
+rename public binaries/CLI
+rename MCP prefixes
+rename env vars
+rename storage root
+decide alias compatibility policy
+test legacy behavior
+update onboarding docs and examples
+update final verification commands
+Right now these items exist, but they need to be stricter and grouped as a dependency chain.
+
+D. Remove or rewrite old production directions
+Problem: tasks.md still centers bunx -y reelink, reelink doctor, reelink init, and reelink_* as the required public target while also claiming Reck.
+
+Patch: Replace the “Production launch direction” section with Reck-native commands:
+
+bunx -y @anslai/reck init
+bunx -y @anslai/reck doctor
+installed reck init
+installed reck doctor
+Then add one migration note:
+
+linked reelink-mcp is legacy/local-dev-only if still temporarily supported
+E. Rewrite the required public MCP surface target
+Problem: this section is still entirely reelink_*.
+
+Patch: Change the required public surface target to:
+
+reck_analyze
+reck_get_finding
+reck_get_frame
+reck_get_dom
+reck_get_components
+reck_query
+reck_record_start
+reck_record_stop
+reck_record_status
+reck_browser_snapshot
+reck_browser_click
+reck_browser_type
+reck_browser_navigate
+reck_browser_wait
+reck_browser_evaluate
+reck_browser_take_screenshot
+reck_run
+Then append:
+
+any temporary reelink_* aliases are compatibility-only and not part of the primary public target
+F. Rewrite P0/P1/P2/P3/P4 task wording so proof levels are harder
+Problem: many task lines say “verified by tests and smokes” in places where GAPLIST.md still says proof is insufficient.
+
+Patch pattern: Replace phrases like:
+
+“Verified by tests and browser recording smokes” with:
+“Implemented and smoke-verified; does not satisfy real-app verification or final completion on its own”
+Apply especially to:
+
+P2.3 through P2.21
+P3.1 through P3.14
+G. Remove stale reinstatement of GPT fallback if it conflicts with current product language
+There is a task line re-approving GPT/OpenAI fallback. That may still be okay technically, but it should be rewritten to match the product contract:
+
+deterministic-first
+opt-in only
+not primary
+not implied as the main query path
+H. Rename filesystem path tasks
+Patch:
+
+.reelink/ -> .reck/ for all new writes
+old .reelink/ read support must be explicitly tagged as migration compatibility
+if reelink/ package folder remains temporarily, tasks.md must say whether that is:
+current implementation path pending rename
+or an intentional exception
+Right now it reads like the final rename is required, so the tasks need to reflect that sharply.
+
+4. video-finding-analysis/spec.md
+This spec needs careful cleanup because it now mixes old and new identity rules in the same requirement set.
+
+A. Rewrite the onboarding requirement from Reelink to Reck
+Current problem: it still requires [mcp_servers.reelink], reelink_analyze, and “Reelink” in the canonical Codex flow.
+
+Patch: Change:
+
+[mcp_servers.reelink] -> final Reck config target
+reelink running -> reck running
+reelink_analyze -> reck_analyze
+If legacy naming remains supported, add a separate compatibility scenario:
+
+old config block may still be recognized temporarily
+but final onboarding docs must use Reck
+B. Rewrite the Layer 0 requirement to use Reck public naming
+Patch:
+
+“Imported video is analyzed through Reck” should become the canonical scenario, not an extra add-on
+reck_analyze should be the primary tool named everywhere
+.reck/ should be the primary write location everywhere
+C. Rewrite the reconciliation guardrails section
+Current problem: it says findings is authoritative, but still phrases proof in terms of reelink_analyze.
+
+Patch: Rewrite the section so it says:
+
+the canonical public Layer 0 contract is reck_analyze -> {recording_id, duration_sec, summary, findings, next_steps}
+any work_items field is compatibility/detail output only
+status updates must cite code/test evidence for the Reck-named public contract
+any temporary alias behavior must be documented as migration-only
+D. Fix the onboarding-doc path contradiction
+Problem: spec still says onboarding docs must exist under reelink/docs/, but rename spec says folder becomes reck/.
+
+Patch: Replace with one explicit rule:
+
+docs must exist under the active package/docs path for the current implementation
+if package folder rename is part of this change, use reck/docs/
+if package folder rename is deferred, mark reelink/docs/ as implementation path and reck as public identity
+Do not leave both implied.
+
+E. Add a dedicated migration scenario for old tool/config names
+Add scenarios like:
+
+if old reelink_* aliases exist, they are temporary and tested
+if old config blocks or storage roots are read, behavior is documented
+no completion claim until alias/migration behavior is either removed or tested
+That makes the rename practical instead of magical.
+
+Cross-file patch rules
+Apply these across all four files:
+
+1. End-state rule
+OpenSpec should describe the final intended product state:
+
+public product = Reck
+public CLI = reck
+public MCP = reck_*
+public storage = .reck/
+public env prefix = RECK_*
+2. Compatibility rule
+Any old Reelink naming must be:
+
+explicitly marked legacy
+scoped to exact surfaces
+tested if still supported
+given removal criteria
+3. Verification rule
+Use these distinctions consistently:
+
+implemented
+unit-tested
+smoke-verified
+real-app-verified
+client-verified
+complete
+And never let implemented or smoke-verified read like complete.
+
+4. Product framing rule
+Remove hackathon/demo framing from normative product definition sections. Keep only:
+
+wedge
+full product
+proof requirements
+migration policy
+5. Contract rule
+Make findings the public Layer 0 authority everywhere unless you intentionally want a documented dual-shape transition.
+
+---
+
+Findings
+OpenSpec is internally inconsistent about the rename, so it cannot currently serve as a clean source of truth for the product transition.
+openspec/changes/build-reelink-mcp/design.md says the public identity changes to Reck, including package, binaries, MCP prefix, env vars, storage root, and package folder, but the same file still uses old names for the core API, install flow, folder examples, and product narrative. proposal.md has the same problem: it declares a breaking rename to Reck while still specifying bunx -y reelink, reelink_* tools, .reelink/, and “Reelink” as the active product in many normative statements. video-finding-analysis/spec.md is even more conflicted because it adds a “Reck” scenario while leaving the canonical scenarios and reconciliation guardrails centered on reelink_*.
+This is the highest-severity issue because PRODUCT.md and the new reck-product-identity spec imply a decisive rename, while the rest of OpenSpec still describes a hybrid state with no explicit compatibility window structure. That means implementers can truthfully “follow the spec” and still produce incompatible outcomes.
+
+tasks.md still overclaims implementation/verification relative to the product bar defined in PRODUCT.md and reinforced by GAPLIST.md.
+The status table in openspec/changes/build-reelink-mcp/tasks.md says Layer 1, Layer 2, provider strategy, package semantics, and workflow proof are “implemented” with remediation remaining, and many downstream tasks in P2/P3 are written as verified by tests/smokes. But PRODUCT.md explicitly says Layer 1 is not complete until runtime is verified on a real supported app, and Layer 2 is not complete until the public workflow is proven end-to-end. GAPLIST.md carries the same standard.
+So even though tasks.md is better than older versions, it still reads too close to “feature done, proof polishing left” instead of “major product claims still pending real-app/client-grade verification.” That mismatch matters because OpenSpec task status is exactly where false completion pressure creeps back in.
+
+OpenSpec still encodes hackathon-era framing that conflicts with the current product definition.
+design.md still includes goals like “Provide a hackathon plan that can demo video-to-finding quickly” and long demo-specific sections around founder portfolio bugs. That historical context is useful, but in the current state it is mixed into normative design text rather than clearly separated as historical execution context. PRODUCT.md defines a production-grade open-source dev tool, and your current direction is explicitly “well past the hackathon.”
+As written, OpenSpec still partly frames the product around the demo and submission path, which weakens alignment with both PRODUCT.md and GAPLIST.md.
+
+The product contract around findings vs work_items is improved but still not fully resolved across OpenSpec.
+video-finding-analysis/spec.md correctly says findings remains the public authority and any public work_items field must be treated as compatibility/detail output. But design.md still uses reelink_analyze examples that normalize older shapes, and tasks.md still includes old success criteria phrased around work_items in places.
+This is a medium-high issue because PRODUCT.md and GAPLIST.md both identify this as a core contract decision, and OpenSpec still reads like it wants both clarity and ambiguity at the same time.
+
+OpenSpec’s doc-path and package-path expectations are inconsistent with the rename plan.
+video-finding-analysis/spec.md still says onboarding docs must exist under reelink/docs/, while reck-product-identity/spec.md says the package folder should become reck/. design.md also says the root package folder becomes reck/, but many referenced paths remain under reelink/ and many examples still use .reelink/.
+That creates a practical migration ambiguity: is the rename intended to be purely public-facing first, or does OpenSpec require an immediate filesystem/package rename too? Right now it implies both, but not cleanly.
+
+The Codex/client onboarding requirements are still tied to old naming and commands, so they conflict with the new identity spec.
+video-finding-analysis/spec.md still requires writing [mcp_servers.reelink], verifying reelink is running, and calling reelink_analyze, while the new identity spec requires reck_* as the public MCP surface and reck / reck-mcp binaries.
+This is a concrete example of why the rename is not yet spec-coherent: even the “canonical client” flow can’t be implemented exactly as written once the rename is enforced.
+
+PRODUCT.md and GAPLIST.md are now out of sync with the current OpenSpec rename decision.
+This is not an OpenSpec bug alone, but it is a real alignment problem. Both files still present Reelink as the current product identity, while OpenSpec now says the final public identity is Reck. Since you asked for review against those files, the honest answer is that they are no longer fully aligned.
+If Reck is the settled name, then PRODUCT.md and GAPLIST.md need a rename-aware revision. If Reck is still provisional, OpenSpec is prematurely acting as though the rename is locked.
+OpenSpec Patch List
+This is a spec-only patch list for:
+
+openspec/changes/build-reelink-mcp/design.md
+openspec/changes/build-reelink-mcp/proposal.md
+openspec/changes/build-reelink-mcp/tasks.md
+openspec/specs/video-finding-analysis/spec.md
+Goal: make OpenSpec align with:
+
+PRODUCT.md
+GAPLIST.md
+the settled rename to Reck
+the “end state, not hybrid mush” rule
+1. design.md
+A. Rewrite the identity and thesis sections to use end-state naming only
+Problem: design.md declares the rename, then keeps using Reelink, reelink_*, .reelink/, and bunx -y reelink as normative examples.
+
+Patch:
+
+Replace the opening context framing so the current product name is Reck, not Reelink.
+Keep one short migration note saying “Reelink was the previous working name.”
+Remove mixed identity phrasing where the body still treats Reelink as the live public identity.
+Rewrite targets:
+
+## Context
+## Reck Rename
+any section that says “Reelink should…” as normative product text
+Desired rule:
+
+Current product identity: Reck
+Legacy compatibility references: explicitly marked legacy only
+B. Rewrite all public API examples to reck_*
+Problem: Design locks reck_* as final public API, but examples still define reelink_*.
+
+Patch: Replace the full public tool list under the stable API decision.
+
+Change from conceptually:
+
+reelink_analyze -> reck_analyze
+reelink_get_finding -> reck_get_finding
+reelink_get_frame -> reck_get_frame
+reelink_get_dom -> reck_get_dom
+reelink_get_components -> reck_get_components
+reelink_query -> reck_query
+reelink_run -> reck_run
+reelink_browser_* -> reck_browser_*
+Add one explicit compatibility paragraph:
+
+Old reelink_* names may exist only as temporary aliases.
+If retained, aliases must be documented, tested, and given removal criteria.
+They are not the primary public contract.
+C. Rewrite package, binary, env, and storage examples to Reck
+Problem: rename section says @anslai/reck, reck, .reck/, RECK_*, but later decisions still specify old names.
+
+Patch: Update:
+
+bunx -y reelink -> bunx -y @anslai/reck
+bun install -g reelink -> install/use reck
+.reelink/ -> .reck/
+REELINK_* -> RECK_*
+reelink-mcp -> reck-mcp
+package folder reelink/ -> reck/
+Important nuance to add:
+
+Old .reelink/ recordings may be read through documented legacy lookup.
+New writes go to .reck/.
+Same rule for REELINK_*: read only as migration compatibility, prefer RECK_*.
+D. Remove hackathon language from normative design
+Problem: design.md still includes hackathon goals as if they are current product goals.
+
+Patch: Remove or downgrade phrases like:
+
+“Provide a hackathon plan...”
+demo-specific execution language in the product-goal section
+Keep only if moved under a clearly labeled historical section:
+
+## Historical Execution Context or
+delete entirely from design
+Design should instead say:
+
+Layer 0 is the adoption wedge
+Layer 1 is the architectural unlock
+Layer 2 is the agentic primitive
+That matches PRODUCT.md.
+
+E. Tighten completion definition around proof, not code presence
+Problem: design is better now, but still needs harder language matching GAPLIST.md.
+
+Patch: In ## Authority and Completion Definition, add explicit rules:
+
+Layer 1 is not complete from code existence, fixture tests, or smoke-only evidence.
+Layer 2 is not complete from code existence, fixture tests, or smoke-only evidence.
+Completion requires real-app verification for Layer 1 and real workflow verification for Layer 2.
+Docs/OpenSpec must not mark a layer complete ahead of proof.
+F. Resolve findings vs work_items
+Problem: design still leaves too much contract ambiguity.
+
+Patch: Under stable API/public contract section, add an explicit end-state contract block:
+
+Recommended wording:
+
+findings is the canonical public Layer 0 contract.
+work_items may exist only as compatibility/detail output during a documented transition window.
+If retained, tests must cover dual-shape behavior and docs must state removal criteria.
+No new public docs should present work_items as the headline Layer 0 response.
+G. Rename internal examples for Layer 0/1/2
+Patch examples:
+
+reelink_analyze(path...) -> reck_analyze(path...)
+reelink_run(task_description, target_url) -> reck_run(task_description, target_url)
+my-bug.reelink/ -> my-bug.reck/
+.reelink/browser-recordings/<id> -> .reck/browser-recordings/<id>
+2. proposal.md
+A. Rewrite the proposal summary to be fully Reck-native
+Problem: proposal announces Reck but still describes the change in Reelink terms.
+
+Patch: Update:
+
+opening “Why” paragraph
+“What Changes”
+“Capabilities”
+“Impact”
+So the live product is Reck throughout.
+
+B. Fix the contradictory install/launch lines
+Problem: proposal says rename to Reck, but still says production is bunx -y reelink.
+
+Patch: Change proposal-wide:
+
+bunx -y reelink -> bunx -y @anslai/reck
+reelink binary -> reck
+reelink-mcp -> reck-mcp
+If you want migration language, add:
+
+legacy linked/local testing may still mention old binaries temporarily
+but proposal must mark those as legacy/dev-only
+C. Rewrite the MCP story to use reck_*
+Patch: In “What Changes” and “Capabilities”:
+
+replace every public reelink_* tool reference with reck_*
+replace reelink_browser_* with reck_browser_*
+D. Rewrite package/storage/env references
+Patch:
+
+.reelink/ -> .reck/
+REELINK_* -> RECK_*
+reelink/docs/ path references should be revisited depending on whether package folder rename is immediate
+if folder rename is part of the same change, use reck/docs/
+if not immediate, label reelink/docs/ as current implementation path, not final public identity
+E. Remove hackathon framing from proposal impact
+Problem: proposal still carries wedge/demo/hackathon emphasis in a way that undershoots current product scope.
+
+Patch: Keep “Layer 0 is the wedge” but remove language that frames the product as primarily hackathon-oriented. Proposal should read as a production OSS feature proposal with:
+
+wedge
+full product
+rename
+verification requirements
+F. Add explicit compatibility scope
+Patch block to add near rename section:
+
+Legacy reelink_*, REELINK_*, .reelink/, and reelink-mcp may be retained only as transitional compatibility behavior.
+OpenSpec must specify:
+where each legacy name still works
+which surfaces are already Reck-only
+what tests validate compatibility
+what removes the compatibility path later
+3. tasks.md
+This file needs the heaviest cleanup because it drives fake completion if left fuzzy.
+
+A. Rewrite the status table to reflect proof reality
+Problem: status rows still read too optimistically relative to PRODUCT.md and GAPLIST.md.
+
+Patch each row like this:
+
+Reck rename
+from Pending implementation
+to something like: Specified in OpenSpec / not implemented in public surfaces
+
+Layer 0 video analysis
+keep as implemented, but explicitly say: public contract and rename migration still pending
+
+Layer 1 recording package
+from Implemented / requires real-app proof
+to Substantially implemented / not yet real-app-verified / not complete
+
+Layer 2 reelink_run
+rename row to Layer 2 reck_run
+status: Partially implemented / not yet workflow-verified / not complete
+
+Provider strategy
+status should distinguish:
+
+primary raw-video path implemented
+fallback claims not all verified
+rename not yet propagated
+Product DevX
+status should explicitly say:
+
+current onboarding path inconsistent with final Reck identity
+not release-ready
+B. Rename every public task from Reelink to Reck
+Patch: Where tasks refer to public behavior:
+
+reelink_* -> reck_*
+reelink init -> reck init
+reelink doctor -> reck doctor
+reelink_run -> reck_run
+For migration tasks, mention both only when necessary:
+
+“rename old reelink_* public tools to reck_*”
+“document/test temporary aliases if retained”
+C. Make the rename tasks explicit and ordered
+Add a dedicated top block under Active Remediation:
+
+rename public identity in docs/specs/package metadata
+rename public binaries/CLI
+rename MCP prefixes
+rename env vars
+rename storage root
+decide alias compatibility policy
+test legacy behavior
+update onboarding docs and examples
+update final verification commands
+Right now these items exist, but they need to be stricter and grouped as a dependency chain.
+
+D. Remove or rewrite old production directions
+Problem: tasks.md still centers bunx -y reelink, reelink doctor, reelink init, and reelink_* as the required public target while also claiming Reck.
+
+Patch: Replace the “Production launch direction” section with Reck-native commands:
+
+bunx -y @anslai/reck init
+bunx -y @anslai/reck doctor
+installed reck init
+installed reck doctor
+Then add one migration note:
+
+linked reelink-mcp is legacy/local-dev-only if still temporarily supported
+E. Rewrite the required public MCP surface target
+Problem: this section is still entirely reelink_*.
+
+Patch: Change the required public surface target to:
+
+reck_analyze
+reck_get_finding
+reck_get_frame
+reck_get_dom
+reck_get_components
+reck_query
+reck_record_start
+reck_record_stop
+reck_record_status
+reck_browser_snapshot
+reck_browser_click
+reck_browser_type
+reck_browser_navigate
+reck_browser_wait
+reck_browser_evaluate
+reck_browser_take_screenshot
+reck_run
+Then append:
+
+any temporary reelink_* aliases are compatibility-only and not part of the primary public target
+F. Rewrite P0/P1/P2/P3/P4 task wording so proof levels are harder
+Problem: many task lines say “verified by tests and smokes” in places where GAPLIST.md still says proof is insufficient.
+
+Patch pattern: Replace phrases like:
+
+“Verified by tests and browser recording smokes” with:
+“Implemented and smoke-verified; does not satisfy real-app verification or final completion on its own”
+Apply especially to:
+
+P2.3 through P2.21
+P3.1 through P3.14
+G. Remove stale reinstatement of GPT fallback if it conflicts with current product language
+There is a task line re-approving GPT/OpenAI fallback. That may still be okay technically, but it should be rewritten to match the product contract:
+
+deterministic-first
+opt-in only
+not primary
+not implied as the main query path
+H. Rename filesystem path tasks
+Patch:
+
+.reelink/ -> .reck/ for all new writes
+old .reelink/ read support must be explicitly tagged as migration compatibility
+if reelink/ package folder remains temporarily, tasks.md must say whether that is:
+current implementation path pending rename
+or an intentional exception
+Right now it reads like the final rename is required, so the tasks need to reflect that sharply.
+
+4. video-finding-analysis/spec.md
+This spec needs careful cleanup because it now mixes old and new identity rules in the same requirement set.
+
+A. Rewrite the onboarding requirement from Reelink to Reck
+Current problem: it still requires [mcp_servers.reelink], reelink_analyze, and “Reelink” in the canonical Codex flow.
+
+Patch: Change:
+
+[mcp_servers.reelink] -> final Reck config target
+reelink running -> reck running
+reelink_analyze -> reck_analyze
+If legacy naming remains supported, add a separate compatibility scenario:
+
+old config block may still be recognized temporarily
+but final onboarding docs must use Reck
+B. Rewrite the Layer 0 requirement to use Reck public naming
+Patch:
+
+“Imported video is analyzed through Reck” should become the canonical scenario, not an extra add-on
+reck_analyze should be the primary tool named everywhere
+.reck/ should be the primary write location everywhere
+C. Rewrite the reconciliation guardrails section
+Current problem: it says findings is authoritative, but still phrases proof in terms of reelink_analyze.
+
+Patch: Rewrite the section so it says:
+
+the canonical public Layer 0 contract is reck_analyze -> {recording_id, duration_sec, summary, findings, next_steps}
+any work_items field is compatibility/detail output only
+status updates must cite code/test evidence for the Reck-named public contract
+any temporary alias behavior must be documented as migration-only
+D. Fix the onboarding-doc path contradiction
+Problem: spec still says onboarding docs must exist under reelink/docs/, but rename spec says folder becomes reck/.
+
+Patch: Replace with one explicit rule:
+
+docs must exist under the active package/docs path for the current implementation
+if package folder rename is part of this change, use reck/docs/
+if package folder rename is deferred, mark reelink/docs/ as implementation path and reck as public identity
+Do not leave both implied.
+
+E. Add a dedicated migration scenario for old tool/config names
+Add scenarios like:
+
+if old reelink_* aliases exist, they are temporary and tested
+if old config blocks or storage roots are read, behavior is documented
+no completion claim until alias/migration behavior is either removed or tested
+That makes the rename practical instead of magical.
+
+Cross-file patch rules
+Apply these across all four files:
+
+1. End-state rule
+OpenSpec should describe the final intended product state:
+
+public product = Reck
+public CLI = reck
+public MCP = reck_*
+public storage = .reck/
+public env prefix = RECK_*
+2. Compatibility rule
+Any old Reelink naming must be:
+
+explicitly marked legacy
+scoped to exact surfaces
+tested if still supported
+given removal criteria
+3. Verification rule
+Use these distinctions consistently:
+
+implemented
+unit-tested
+smoke-verified
+real-app-verified
+client-verified
+complete
+And never let implemented or smoke-verified read like complete.
+
+4. Product framing rule
+Remove hackathon/demo framing from normative product definition sections. Keep only:
+
+wedge
+full product
+proof requirements
+migration policy
+5. Contract rule
+Make findings the public Layer 0 authority everywhere unless you intentionally want a documented dual-shape transition.
