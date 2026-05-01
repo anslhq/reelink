@@ -1,0 +1,253 @@
+{
+  "recording_id": "rec_smoke_molqlrum",
+  "session_id": "rec_smoke_molqlrum",
+  "created_at": "2026-04-30T17:07:41.758Z",
+  "source_type": "browser_recording",
+  "source_path": "data:text/html,%3C!doctype%20html%3E%0A%3Chtml%3E%0A%3Chead%3E%3Cmeta%20charset%3D%22utf-8%22%3E%3Ctitle%3EReck%20smoke%20app%3C%2Ftitle%3E%3C%2Fhead%3E%0A%3Cbody%3E%0A%20%20%3Cmain%20data-reck-component%3D%22SmokeApp%22%20data-source-file%3D%22src%2FSmokeApp.tsx%22%20data-source-line%3D%227%22%20data-secret-token%3D%22raw-secret%22%3E%0A%20%20%20%20%3Cbutton%20id%3D%22nav%22%20data-reck-component%3D%22SmokeButton%22%20data-source-file%3D%22src%2FSmokeButton.tsx%22%20data-source-line%3D%2211%22%3EOpen%20panel%3C%2Fbutton%3E%0A%20%20%20%20%3Csection%20id%3D%22panel%22%20hidden%20data-reck-component%3D%22SmokePanel%22%20data-source-file%3D%22src%2FSmokePanel.tsx%22%20data-source-line%3D%2221%22%3EReady%3C%2Fsection%3E%0A%20%20%3C%2Fmain%3E%0A%20%20%3Cscript%3E%0A%20%20%20%20console.info('smoke%20app%20boot%20token%3Dconsole-secret')%3B%0A%20%20%20%20fetch('data%3Aapplication%2Fjson%2C%7B%22ok%22%3Atrue%7D').catch(()%20%3D%3E%20undefined)%3B%0A%20%20%20%20document.getElementById('nav').addEventListener('click'%2C%20()%20%3D%3E%20%7B%0A%20%20%20%20%20%20document.getElementById('panel').hidden%20%3D%20false%3B%0A%20%20%20%20%20%20console.error('panel%20opened%20password%3Dpanel-secret')%3B%0A%20%20%20%20%7D)%3B%0A%20%20%3C%2Fscript%3E%0A%3C%2Fbody%3E%0A%3C%2Fhtml%3E",
+  "duration_sec": null,
+  "preprocessing": {
+    "requested_fps": 0,
+    "effective_fps": 0,
+    "max_frames": 0,
+    "long_edge_px": 0,
+    "frame_count": 0,
+    "strategy": "cached-frame-retrieval",
+    "primary_analysis_uses_raw_video": false
+  },
+  "artifacts": {
+    "video": "video.webm",
+    "network": "network.jsonl",
+    "network_har": "network.har",
+    "console": "console.jsonl",
+    "logs": "logs.jsonl",
+    "dom": "dom",
+    "trace": "trace.zip",
+    "frames": "frames",
+    "fiber_commits": "fiber-commits.jsonl",
+    "source_dictionary": "source-dictionary.json",
+    "react_grab_events": "react-grab-events.jsonl",
+    "gateway": "gateway.jsonl"
+  },
+  "streams": {
+    "layer0": {
+      "status": "not_collected",
+      "reason": "Browser recording was captured without Layer 0 video analysis"
+    },
+    "frames": {
+      "status": "available"
+    },
+    "trace": {
+      "status": "available"
+    },
+    "dom": {
+      "status": "available"
+    },
+    "fiber_commits": {
+      "status": "not_collected",
+      "reason": "No bippy/React fiber commits were available on the page"
+    },
+    "source_dictionary": {
+      "status": "not_collected",
+      "reason": "No React source dictionary was available on the page"
+    },
+    "react_grab_events": {
+      "status": "available"
+    },
+    "network": {
+      "status": "available"
+    },
+    "console": {
+      "status": "available"
+    },
+    "logs": {
+      "status": "available"
+    },
+    "gateway": {
+      "status": "available"
+    },
+    "eval": {
+      "status": "not_collected",
+      "reason": "No verification artifact generated"
+    }
+  },
+  "prod_build": null,
+  "prod_build_status": "unavailable",
+  "prod_build_reason": "React production-mode detection was not available from captured runtime evidence",
+  "relations": {
+    "browser_recording_id": "rec_smoke_molqlrum",
+    "related_recording_ids": [],
+    "relation": "browser_capture"
+  },
+  "safety": {
+    "redaction_applied": true,
+    "redaction_rules": [
+      "text:password",
+      "text:token"
+    ],
+    "redacted_streams": [
+      "console"
+    ]
+  },
+  "url": "data:text/html,%3C!doctype%20html%3E%0A%3Chtml%3E%0A%3Chead%3E%3Cmeta%20charset%3D%22utf-8%22%3E%3Ctitle%3EReck%20smoke%20app%3C%2Ftitle%3E%3C%2Fhead%3E%0A%3Cbody%3E%0A%20%20%3Cmain%20data-reck-component%3D%22SmokeApp%22%20data-source-file%3D%22src%2FSmokeApp.tsx%22%20data-source-line%3D%227%22%20data-secret-token%3D%22raw-secret%22%3E%0A%20%20%20%20%3Cbutton%20id%3D%22nav%22%20data-reck-component%3D%22SmokeButton%22%20data-source-file%3D%22src%2FSmokeButton.tsx%22%20data-source-line%3D%2211%22%3EOpen%20panel%3C%2Fbutton%3E%0A%20%20%20%20%3Csection%20id%3D%22panel%22%20hidden%20data-reck-component%3D%22SmokePanel%22%20data-source-file%3D%22src%2FSmokePanel.tsx%22%20data-source-line%3D%2221%22%3EReady%3C%2Fsection%3E%0A%20%20%3C%2Fmain%3E%0A%20%20%3Cscript%3E%0A%20%20%20%20console.info('smoke%20app%20boot%20token%3Dconsole-secret')%3B%0A%20%20%20%20fetch('data%3Aapplication%2Fjson%2C%7B%22ok%22%3Atrue%7D').catch(()%20%3D%3E%20undefined)%3B%0A%20%20%20%20document.getElementById('nav').addEventListener('click'%2C%20()%20%3D%3E%20%7B%0A%20%20%20%20%20%20document.getElementById('panel').hidden%20%3D%20false%3B%0A%20%20%20%20%20%20console.error('panel%20opened%20password%3Dpanel-secret')%3B%0A%20%20%20%20%7D)%3B%0A%20%20%3C%2Fscript%3E%0A%3C%2Fbody%3E%0A%3C%2Fhtml%3E",
+  "final_url": "data:text/html,%3C!doctype%20html%3E%0A%3Chtml%3E%0A%3Chead%3E%3Cmeta%20charset%3D%22utf-8%22%3E%3Ctitle%3EReck%20smoke%20app%3C%2Ftitle%3E%3C%2Fhead%3E%0A%3Cbody%3E%0A%20%20%3Cmain%20data-reck-component%3D%22SmokeApp%22%20data-source-file%3D%22src%2FSmokeApp.tsx%22%20data-source-line%3D%227%22%20data-secret-token%3D%22raw-secret%22%3E%0A%20%20%20%20%3Cbutton%20id%3D%22nav%22%20data-reck-component%3D%22SmokeButton%22%20data-source-file%3D%22src%2FSmokeButton.tsx%22%20data-source-line%3D%2211%22%3EOpen%20panel%3C%2Fbutton%3E%0A%20%20%20%20%3Csection%20id%3D%22panel%22%20hidden%20data-reck-component%3D%22SmokePanel%22%20data-source-file%3D%22src%2FSmokePanel.tsx%22%20data-source-line%3D%2221%22%3EReady%3C%2Fsection%3E%0A%20%20%3C%2Fmain%3E%0A%20%20%3Cscript%3E%0A%20%20%20%20console.info('smoke%20app%20boot%20token%3Dconsole-secret')%3B%0A%20%20%20%20fetch('data%3Aapplication%2Fjson%2C%7B%22ok%22%3Atrue%7D').catch(()%20%3D%3E%20undefined)%3B%0A%20%20%20%20document.getElementById('nav').addEventListener('click'%2C%20()%20%3D%3E%20%7B%0A%20%20%20%20%20%20document.getElementById('panel').hidden%20%3D%20false%3B%0A%20%20%20%20%20%20console.error('panel%20opened%20password%3Dpanel-secret')%3B%0A%20%20%20%20%7D)%3B%0A%20%20%3C%2Fscript%3E%0A%3C%2Fbody%3E%0A%3C%2Fhtml%3E",
+  "max_seconds": 20,
+  "duration_limit_hit": false,
+  "video": "/Users/harsha/Developer/hackathon/reelink/.reck/browser-recordings/rec_smoke_molqlrum/video.webm",
+  "dom_snapshots": [
+    {
+      "ts": 1.914,
+      "path": "/Users/harsha/Developer/hackathon/reelink/.reck/browser-recordings/rec_smoke_molqlrum/dom/snapshot-0001.html",
+      "url": "data:text/html,%3C!doctype%20html%3E%0A%3Chtml%3E%0A%3Chead%3E%3Cmeta%20charset%3D%22utf-8%22%3E%3Ctitle%3EReck%20smoke%20app%3C%2Ftitle%3E%3C%2Fhead%3E%0A%3Cbody%3E%0A%20%20%3Cmain%20data-reck-component%3D%22SmokeApp%22%20data-source-file%3D%22src%2FSmokeApp.tsx%22%20data-source-line%3D%227%22%20data-secret-token%3D%22raw-secret%22%3E%0A%20%20%20%20%3Cbutton%20id%3D%22nav%22%20data-reck-component%3D%22SmokeButton%22%20data-source-file%3D%22src%2FSmokeButton.tsx%22%20data-source-line%3D%2211%22%3EOpen%20panel%3C%2Fbutton%3E%0A%20%20%20%20%3Csection%20id%3D%22panel%22%20hidden%20data-reck-component%3D%22SmokePanel%22%20data-source-file%3D%22src%2FSmokePanel.tsx%22%20data-source-line%3D%2221%22%3EReady%3C%2Fsection%3E%0A%20%20%3C%2Fmain%3E%0A%20%20%3Cscript%3E%0A%20%20%20%20console.info('smoke%20app%20boot%20token%3Dconsole-secret')%3B%0A%20%20%20%20fetch('data%3Aapplication%2Fjson%2C%7B%22ok%22%3Atrue%7D').catch(()%20%3D%3E%20undefined)%3B%0A%20%20%20%20document.getElementById('nav').addEventListener('click'%2C%20()%20%3D%3E%20%7B%0A%20%20%20%20%20%20document.getElementById('panel').hidden%20%3D%20false%3B%0A%20%20%20%20%20%20console.error('panel%20opened%20password%3Dpanel-secret')%3B%0A%20%20%20%20%7D)%3B%0A%20%20%3C%2Fscript%3E%0A%3C%2Fbody%3E%0A%3C%2Fhtml%3E",
+      "title": "Reck smoke app",
+      "tree_summary": "html:1, head:1, meta:1, title:1, body:1, main:1, button:1, section:1, script:1"
+    },
+    {
+      "ts": 2.422,
+      "path": "/Users/harsha/Developer/hackathon/reelink/.reck/browser-recordings/rec_smoke_molqlrum/dom/snapshot-0002.html",
+      "url": "data:text/html,%3C!doctype%20html%3E%0A%3Chtml%3E%0A%3Chead%3E%3Cmeta%20charset%3D%22utf-8%22%3E%3Ctitle%3EReck%20smoke%20app%3C%2Ftitle%3E%3C%2Fhead%3E%0A%3Cbody%3E%0A%20%20%3Cmain%20data-reck-component%3D%22SmokeApp%22%20data-source-file%3D%22src%2FSmokeApp.tsx%22%20data-source-line%3D%227%22%20data-secret-token%3D%22raw-secret%22%3E%0A%20%20%20%20%3Cbutton%20id%3D%22nav%22%20data-reck-component%3D%22SmokeButton%22%20data-source-file%3D%22src%2FSmokeButton.tsx%22%20data-source-line%3D%2211%22%3EOpen%20panel%3C%2Fbutton%3E%0A%20%20%20%20%3Csection%20id%3D%22panel%22%20hidden%20data-reck-component%3D%22SmokePanel%22%20data-source-file%3D%22src%2FSmokePanel.tsx%22%20data-source-line%3D%2221%22%3EReady%3C%2Fsection%3E%0A%20%20%3C%2Fmain%3E%0A%20%20%3Cscript%3E%0A%20%20%20%20console.info('smoke%20app%20boot%20token%3Dconsole-secret')%3B%0A%20%20%20%20fetch('data%3Aapplication%2Fjson%2C%7B%22ok%22%3Atrue%7D').catch(()%20%3D%3E%20undefined)%3B%0A%20%20%20%20document.getElementById('nav').addEventListener('click'%2C%20()%20%3D%3E%20%7B%0A%20%20%20%20%20%20document.getElementById('panel').hidden%20%3D%20false%3B%0A%20%20%20%20%20%20console.error('panel%20opened%20password%3Dpanel-secret')%3B%0A%20%20%20%20%7D)%3B%0A%20%20%3C%2Fscript%3E%0A%3C%2Fbody%3E%0A%3C%2Fhtml%3E",
+      "title": "Reck smoke app",
+      "tree_summary": "html:1, head:1, meta:1, title:1, body:1, main:1, button:1, section:1, script:1"
+    }
+  ],
+  "frame_snapshots": [
+    {
+      "ts": 0.81,
+      "path": "frames/frame-0001.png",
+      "url": "data:text/html,%3C!doctype%20html%3E%0A%3Chtml%3E%0A%3Chead%3E%3Cmeta%20charset%3D%22utf-8%22%3E%3Ctitle%3EReck%20smoke%20app%3C%2Ftitle%3E%3C%2Fhead%3E%0A%3Cbody%3E%0A%20%20%3Cmain%20data-reck-component%3D%22SmokeApp%22%20data-source-file%3D%22src%2FSmokeApp.tsx%22%20data-source-line%3D%227%22%20data-secret-token%3D%22raw-secret%22%3E%0A%20%20%20%20%3Cbutton%20id%3D%22nav%22%20data-reck-component%3D%22SmokeButton%22%20data-source-file%3D%22src%2FSmokeButton.tsx%22%20data-source-line%3D%2211%22%3EOpen%20panel%3C%2Fbutton%3E%0A%20%20%20%20%3Csection%20id%3D%22panel%22%20hidden%20data-reck-component%3D%22SmokePanel%22%20data-source-file%3D%22src%2FSmokePanel.tsx%22%20data-source-line%3D%2221%22%3EReady%3C%2Fsection%3E%0A%20%20%3C%2Fmain%3E%0A%20%20%3Cscript%3E%0A%20%20%20%20console.info('smoke%20app%20boot%20token%3Dconsole-secret')%3B%0A%20%20%20%20fetch('data%3Aapplication%2Fjson%2C%7B%22ok%22%3Atrue%7D').catch(()%20%3D%3E%20undefined)%3B%0A%20%20%20%20document.getElementById('nav').addEventListener('click'%2C%20()%20%3D%3E%20%7B%0A%20%20%20%20%20%20document.getElementById('panel').hidden%20%3D%20false%3B%0A%20%20%20%20%20%20console.error('panel%20opened%20password%3Dpanel-secret')%3B%0A%20%20%20%20%7D)%3B%0A%20%20%3C%2Fscript%3E%0A%3C%2Fbody%3E%0A%3C%2Fhtml%3E"
+    },
+    {
+      "ts": 2.432,
+      "path": "frames/frame-0002.png",
+      "url": "data:text/html,%3C!doctype%20html%3E%0A%3Chtml%3E%0A%3Chead%3E%3Cmeta%20charset%3D%22utf-8%22%3E%3Ctitle%3EReck%20smoke%20app%3C%2Ftitle%3E%3C%2Fhead%3E%0A%3Cbody%3E%0A%20%20%3Cmain%20data-reck-component%3D%22SmokeApp%22%20data-source-file%3D%22src%2FSmokeApp.tsx%22%20data-source-line%3D%227%22%20data-secret-token%3D%22raw-secret%22%3E%0A%20%20%20%20%3Cbutton%20id%3D%22nav%22%20data-reck-component%3D%22SmokeButton%22%20data-source-file%3D%22src%2FSmokeButton.tsx%22%20data-source-line%3D%2211%22%3EOpen%20panel%3C%2Fbutton%3E%0A%20%20%20%20%3Csection%20id%3D%22panel%22%20hidden%20data-reck-component%3D%22SmokePanel%22%20data-source-file%3D%22src%2FSmokePanel.tsx%22%20data-source-line%3D%2221%22%3EReady%3C%2Fsection%3E%0A%20%20%3C%2Fmain%3E%0A%20%20%3Cscript%3E%0A%20%20%20%20console.info('smoke%20app%20boot%20token%3Dconsole-secret')%3B%0A%20%20%20%20fetch('data%3Aapplication%2Fjson%2C%7B%22ok%22%3Atrue%7D').catch(()%20%3D%3E%20undefined)%3B%0A%20%20%20%20document.getElementById('nav').addEventListener('click'%2C%20()%20%3D%3E%20%7B%0A%20%20%20%20%20%20document.getElementById('panel').hidden%20%3D%20false%3B%0A%20%20%20%20%20%20console.error('panel%20opened%20password%3Dpanel-secret')%3B%0A%20%20%20%20%7D)%3B%0A%20%20%3C%2Fscript%3E%0A%3C%2Fbody%3E%0A%3C%2Fhtml%3E"
+    }
+  ],
+  "timeline_alignment": {
+    "frames": {
+      "origin": "recording_start_monotonic",
+      "unit": "seconds",
+      "event_count": 2,
+      "artifact": "frames"
+    },
+    "dom": {
+      "origin": "recording_start_monotonic",
+      "unit": "seconds",
+      "event_count": 2,
+      "artifact": "dom"
+    },
+    "network": {
+      "origin": "recording_start_monotonic",
+      "unit": "seconds",
+      "event_count": 0,
+      "artifact": "network.jsonl"
+    },
+    "console": {
+      "origin": "recording_start_monotonic",
+      "unit": "seconds",
+      "event_count": 2,
+      "artifact": "console.jsonl"
+    },
+    "fiber_commits": {
+      "origin": "page_performance_now_relative_to_recording_start",
+      "unit": "seconds",
+      "event_count": 0,
+      "artifact": "fiber-commits.jsonl"
+    },
+    "react_grab_events": {
+      "origin": "page_performance_now_relative_to_recording_start",
+      "unit": "seconds",
+      "event_count": 1,
+      "artifact": "react-grab-events.jsonl"
+    },
+    "source_dictionary": {
+      "origin": "react_source_runtime",
+      "unit": "seconds",
+      "event_count": 0,
+      "artifact": "source-dictionary.json"
+    },
+    "trace": {
+      "origin": "playwright_trace_clock_aligned_by_recording_start",
+      "unit": "seconds",
+      "event_count": 1,
+      "artifact": "trace.zip"
+    },
+    "work_items": {
+      "origin": "recording_start_monotonic",
+      "unit": "seconds",
+      "event_count": 0,
+      "artifact": "analysis.json when Layer 0/eval has run"
+    },
+    "gateway": {
+      "origin": "recording_start_monotonic",
+      "unit": "seconds",
+      "event_count": 3,
+      "artifact": "gateway.jsonl"
+    },
+    "logs": {
+      "origin": "recording_start_monotonic",
+      "unit": "seconds",
+      "event_count": 6,
+      "artifact": "logs.jsonl"
+    }
+  },
+  "react_capture": {
+    "hook_order": [
+      "install-hook-only",
+      "react-grab-global-bundle",
+      "secure-recorder"
+    ],
+    "secure_applied": true,
+    "dangerously_run_in_production": false,
+    "direct_libraries": {
+      "bippy": "install-hook-only-compatible-devtools-hook",
+      "react_grab": "react-grab/dist/index.global.js headless bundle plus element-pointer recorder"
+    }
+  },
+  "gateway": {
+    "mode": "single-mcp",
+    "cdp_endpoint_available": true,
+    "child_status": "available",
+    "child_mode": "playwright-mcp-child",
+    "child_tools": [
+      "browser_click",
+      "browser_close",
+      "browser_console_messages",
+      "browser_drag",
+      "browser_drop",
+      "browser_evaluate",
+      "browser_file_upload",
+      "browser_fill_form",
+      "browser_handle_dialog",
+      "browser_hover",
+      "browser_mouse_click_xy",
+      "browser_mouse_down",
+      "browser_mouse_drag_xy",
+      "browser_mouse_move_xy",
+      "browser_mouse_up",
+      "browser_mouse_wheel",
+      "browser_navigate",
+      "browser_navigate_back",
+      "browser_network_requests",
+      "browser_press_key",
+      "browser_resize",
+      "browser_run_code",
+      "browser_select_option",
+      "browser_snapshot",
+      "browser_tabs",
+      "browser_take_screenshot",
+      "browser_type",
+      "browser_wait_for"
+    ],
+    "forwarded_tools": {
+      "reck_browser_navigate": "browser_navigate",
+      "reck_browser_click": "browser_mouse_click_xy",
+      "reck_browser_type": "browser_type",
+      "reck_browser_evaluate": "browser_evaluate",
+      "reck_browser_snapshot": "browser_snapshot",
+      "reck_browser_take_screenshot": "browser_take_screenshot"
+    }
+  },
+  "tool_classification": {
+    "classification": "single-mcp-gateway",
+    "reason": "Reck exposes a single MCP surface for curated browser automation while Reck-owned Playwright recording captures native video, trace, DOM, network, console, and runtime streams."
+  }
+}

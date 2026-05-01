@@ -5,14 +5,15 @@ import { z } from "zod/v4";
 import { analyzeVideo } from "../../analyze.js";
 import { AnalyzeResultSchema } from "../../schemas.js";
 import { withToolLogging } from "../../utils/tool-middleware.js";
+import { jsonToolResult } from "./_helpers.js";
 
 export function registerAnalysisTools(server: McpServer): void {
   server.registerTool(
-    "reelink_analyze",
+    "reck_analyze",
     {
       title: "Analyze a local UI recording",
       description:
-        "Analyze a local .mov/.mp4/.webm screen recording and return timestamped UI work items. The analysis tool requires only a path.",
+        "Analyze a local .mov/.mp4/.webm screen recording and return timestamped UI findings. The analysis tool requires only a path.",
       inputSchema: {
         path: z.string().describe("Absolute or workspace-relative path to a .mov, .mp4, or .webm recording."),
         fps_sample: z
@@ -27,7 +28,7 @@ export function registerAnalysisTools(server: McpServer): void {
         recording_id: z.string(),
         duration_sec: z.number().nullable(),
         summary: z.string(),
-        work_items: AnalyzeResultSchema.shape.work_items,
+        findings: AnalyzeResultSchema.shape.findings,
         next_steps: z.array(z.string()),
       },
       annotations: {
@@ -36,12 +37,9 @@ export function registerAnalysisTools(server: McpServer): void {
         idempotentHint: false,
       },
     },
-    withToolLogging("reelink_analyze", async (args) => {
+    withToolLogging("reck_analyze", async (args) => {
       const structuredContent = await analyzeVideo(args);
-      return {
-        content: [{ type: "text", text: JSON.stringify(structuredContent, null, 2) }],
-        structuredContent,
-      };
+      return jsonToolResult(structuredContent);
     }),
   );
 }

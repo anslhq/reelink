@@ -1,0 +1,19 @@
+{
+  "status": "deterministic",
+  "confidence": "high",
+  "recording_id": "rec_molo6rjs_zo1r30",
+  "artifact_path": "/Users/harsha/Developer/hackathon/reelink/.reck/browser-recordings/rec_molo6rjs_zo1r30/eval-evidence.json",
+  "assertion_strategy": "Replay the target route and assert stable DOM/page-state invariants observed in the persisted DOM snapshot.",
+  "expected_pre_fix_behavior": "dom_snapshot observed in recording rec_molo6rjs_zo1r30",
+  "verification_result": "not_run",
+  "stable_observed_artifacts": [
+    {
+      "kind": "dom_snapshot",
+      "path": "/Users/harsha/Developer/hackathon/reelink/.reck/browser-recordings/rec_molo6rjs_zo1r30/dom/snapshot-0002.html",
+      "tree_summary": "html:1, head:1, title:1, meta:1, style:1, body:1, div:1, h1:1, p:2, a:1"
+    }
+  ],
+  "next_steps": [
+    "Create a Playwright test from the listed stable artifacts, then run it against the fixed app."
+  ]
+}

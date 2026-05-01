@@ -18,12 +18,25 @@ export const WorkItemSchema = z.object({
   intent: z.enum(["fix", "investigate", "track"]),
 });
 
+export const FindingSchema = WorkItemSchema.pick({
+  id: true,
+  ts: true,
+  type: true,
+  severity: true,
+  title: true,
+  confidence: true,
+});
+
 export const AnalyzeResultSchema = z.object({
   recording_id: z.string(),
   duration_sec: z.number().nullable(),
   summary: z.string(),
-  work_items: z.array(WorkItemSchema),
+  findings: z.array(FindingSchema),
   next_steps: z.array(z.string()),
+});
+
+export const StoredAnalysisSchema = AnalyzeResultSchema.extend({
+  work_items: z.array(WorkItemSchema),
 });
 
 export const AnalyzeArgsSchema = z.object({
@@ -33,4 +46,6 @@ export const AnalyzeArgsSchema = z.object({
 });
 
 export type AnalyzeResult = z.infer<typeof AnalyzeResultSchema>;
+export type StoredAnalysis = z.infer<typeof StoredAnalysisSchema>;
+export type Finding = z.infer<typeof FindingSchema>;
 export type WorkItem = z.infer<typeof WorkItemSchema>;

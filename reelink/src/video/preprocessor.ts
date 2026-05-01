@@ -10,6 +10,8 @@ type PreprocessPolicy = {
   effectiveFps: number;
   maxFrames: number;
   longEdgePx: number;
+  strategy: "cached-frame-retrieval";
+  primaryAnalysisUsesRawVideo: boolean;
 };
 
 export function preprocessVideo(
@@ -26,6 +28,8 @@ export function preprocessVideo(
     effectiveFps: Math.max(0.1, Math.min(requestedFps, 1)),
     maxFrames: 64,
     longEdgePx: 896,
+    strategy: "cached-frame-retrieval" as const,
+    primaryAnalysisUsesRawVideo: true,
   };
 
   const durationSec = probeDuration(sourcePath);

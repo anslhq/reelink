@@ -1,0 +1,233 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - banner:
+      - link "Home" [ref=e8] [cursor=pointer]:
+        - /url: /
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - generic [ref=e10]:
+                    - link "Home" [ref=e11] [cursor=pointer]:
+                      - /url: /
+                    - link "Blog" [ref=e12] [cursor=pointer]:
+                      - /url: /notes
+                    - link "Projects" [ref=e13] [cursor=pointer]:
+                      - /url: /projects
+                    - link "Gear" [ref=e14] [cursor=pointer]:
+                      - /url: /gear
+                    - link "Popcorn" [ref=e15] [cursor=pointer]:
+                      - /url: /popcorn
+                    - link "Resume" [ref=e16] [cursor=pointer]:
+                      - /url: https://cv.harsha.link
+                    - link "About" [ref=e17] [cursor=pointer]:
+                      - /url: /about
+                  - button [disabled] [ref=e19]
+    - main [ref=e20]:
+      - generic [ref=e21]:
+        - generic [ref=e25]:
+          - generic [ref=e26]:
+            - heading "Harsha Vardhan" [level=1] [ref=e27]
+            - generic [ref=e28]:
+              - text: Computer Science student with a passion for Offensive security, software engineering and Tech,
+              - link "send me an email." [ref=e29] [cursor=pointer]:
+                - /url: mailto:mail@harsha.link
+          - generic [ref=e30]:
+            - listitem [ref=e31]:
+              - link [ref=e32] [cursor=pointer]:
+                - /url: ""
+                - img [ref=e33]
+            - listitem [ref=e35]:
+              - link [ref=e36] [cursor=pointer]:
+                - /url: https://www.instagram.com/hxrsha.v/
+                - img [ref=e37]
+            - listitem [ref=e40]:
+              - link [ref=e41] [cursor=pointer]:
+                - /url: https://github.com/harshav167
+                - img [ref=e42]
+            - listitem [ref=e44]:
+              - link [ref=e45] [cursor=pointer]:
+                - /url: https://www.linkedin.com/in/harsha---vardhan/
+                - img [ref=e46]
+        - generic [ref=e52]:
+          - generic [ref=e53]:
+            - article [ref=e55]:
+              - generic [ref=e56]:
+                - 'heading "Strings Attached: The History and Development of String Theory" [level=2] [ref=e57]':
+                  - 'link "Strings Attached: The History and Development of String Theory" [ref=e58] [cursor=pointer]':
+                    - /url: /notes/string-theory?from=home
+                - time [ref=e59]: April 27, 2025
+                - paragraph [ref=e62]: Explore the fascinating journey of string theory.
+                - link "Read note" [ref=e63] [cursor=pointer]:
+                  - /url: /notes/string-theory?from=home
+                  - text: Read note
+                  - img [ref=e64]
+            - article [ref=e67]:
+              - generic [ref=e68]:
+                - 'heading "Gravastars: Redefining Our Understanding of Spacetime" [level=2] [ref=e69]':
+                  - 'link "Gravastars: Redefining Our Understanding of Spacetime" [ref=e70] [cursor=pointer]':
+                    - /url: /notes/gravastars?from=home
+                - time [ref=e71]: December 8, 2024
+                - paragraph [ref=e74]: Discover Gravastars—quantum-inspired cosmic contenders that challenge black hole supremacy. Explore how these exotic objects, stabilized by vacuum energy and exotic matter, may resolve paradoxes like singularities and information loss, reshape our understanding of spacetime, and offer new insights into dark matter, dark energy, and the universe’s ultimate fate.
+                - link "Read note" [ref=e75] [cursor=pointer]:
+                  - /url: /notes/gravastars?from=home
+                  - text: Read note
+                  - img [ref=e76]
+            - article [ref=e79]:
+              - generic [ref=e80]:
+                - 'heading "Visualizing Infinity: How Penrose Diagrams Make the Impossible Seem Simple" [level=2] [ref=e81]':
+                  - 'link "Visualizing Infinity: How Penrose Diagrams Make the Impossible Seem Simple" [ref=e82] [cursor=pointer]':
+                    - /url: /notes/penrose?from=home
+                - time [ref=e83]: November 27, 2024
+                - paragraph [ref=e86]: Discover how Penrose diagrams simplify space-time, black holes, and wormholes. This guide explores their role in general relativity, cosmic evolution, and their cultural impact in science fiction.
+                - link "Read note" [ref=e87] [cursor=pointer]:
+                  - /url: /notes/penrose?from=home
+                  - text: Read note
+                  - img [ref=e88]
+            - article [ref=e91]:
+              - generic [ref=e92]:
+                - 'heading "Docker vs Podman: a Hacker’s perspective" [level=2] [ref=e93]':
+                  - 'link "Docker vs Podman: a Hacker’s perspective" [ref=e94] [cursor=pointer]':
+                    - /url: /notes/docker-v-podman?from=home
+                - time [ref=e95]: November 26, 2024
+                - paragraph [ref=e98]: Compare Docker vs. Podman from a hacker's perspective. Discover their security features, vulnerabilities, and which is better for containerized environments
+                - link "Read note" [ref=e99] [cursor=pointer]:
+                  - /url: /notes/docker-v-podman?from=home
+                  - text: Read note
+                  - img [ref=e100]
+            - article [ref=e103]:
+              - generic [ref=e104]:
+                - heading "Hacking 17000 people with an IDOR Vulnerability" [level=2] [ref=e105]:
+                  - link "Hacking 17000 people with an IDOR Vulnerability" [ref=e106] [cursor=pointer]:
+                    - /url: /notes/idor-hack?from=home
+                - time [ref=e107]: August 16, 2024
+                - paragraph [ref=e110]: Explore a detailed case study on uncovering and mitigating a severe IDOR vulnerability in a redacted platform. How a simple curiosity led to exposing sensitive data of 17000 personnel
+                - link "Read note" [ref=e111] [cursor=pointer]:
+                  - /url: /notes/idor-hack?from=home
+                  - text: Read note
+                  - img [ref=e112]
+          - generic [ref=e114]:
+            - generic [ref=e118]:
+              - heading "Work" [level=2] [ref=e119]:
+                - img [ref=e120]
+                - generic [ref=e123]: Work
+              - list [ref=e125]:
+                - listitem [ref=e126]:
+                  - img "MailShield AI logo" [ref=e128]
+                  - generic [ref=e129]:
+                    - term [ref=e130]: Company
+                    - definition [ref=e131]: MailShield AI
+                    - term [ref=e132]: Date
+                    - definition [ref=e133]:
+                      - time [ref=e134]: "2024"
+                      - text: —
+                      - time [ref=e135]: Present
+                    - term [ref=e136]: Role
+                    - definition [ref=e137]: Founder and CEO
+                - listitem [ref=e138]:
+                  - img "Cynapse AI logo" [ref=e140]
+                  - generic [ref=e141]:
+                    - term [ref=e142]: Company
+                    - definition [ref=e143]: Cynapse AI
+                    - term [ref=e144]: Date
+                    - definition [ref=e145]:
+                      - time [ref=e146]: "2023"
+                      - text: —
+                      - time [ref=e147]: Present
+                    - term [ref=e148]: Role
+                    - definition [ref=e149]: DevSecOps Engineer
+                - listitem [ref=e150]:
+                  - img "Vertical Institute logo" [ref=e152]
+                  - generic [ref=e153]:
+                    - term [ref=e154]: Company
+                    - definition [ref=e155]: Vertical Institute
+                    - term [ref=e156]: Date
+                    - definition [ref=e157]:
+                      - time [ref=e158]: "2023"
+                      - text: —
+                      - time [ref=e159]: Present
+                    - term [ref=e160]: Role
+                    - definition [ref=e161]: Cyber Security Teaching Assistant
+                - listitem [ref=e162]:
+                  - img "Vertical Institute logo" [ref=e164]
+                  - generic [ref=e165]:
+                    - term [ref=e166]: Company
+                    - definition [ref=e167]: Vertical Institute
+                    - term [ref=e168]: Date
+                    - definition [ref=e169]:
+                      - time [ref=e170]: "2023"
+                      - text: —
+                      - time [ref=e171]: Present
+                    - term [ref=e172]: Role
+                    - definition [ref=e173]: Generative AI Teaching Assistant
+            - link "Less Than Zero - The Weeknd" [ref=e177] [cursor=pointer]:
+              - /url: spotify:track:02w1rM6spvEcbFxd63xCl2
+              - figure "Less Than Zero - The Weeknd" [ref=e178]:
+                - generic [ref=e179]:
+                  - img "Cover art for Less Than Zero" [ref=e180]
+                  - generic [ref=e183]: Less Than Zero - The Weeknd
+                - generic: Less Than Zero - The Weeknd
+              - generic: Spotify
+            - generic [ref=e187]:
+              - generic [ref=e188]:
+                - generic [ref=e189]: Live Feed
+                - generic [ref=e190]: SoundCloud
+              - generic [ref=e191]:
+                - generic [ref=e193]:
+                  - generic [ref=e194]: FEZZO - Kids
+                  - generic [ref=e195]: FEZZO
+                  - generic [ref=e196]: FEZZO - Kids
+                  - generic [ref=e197]: FEZZO
+                - generic:
+                  - img "FEZZO - Kids"
+              - generic [ref=e198]:
+                - paragraph [ref=e199]: Heavy Rotation
+                - generic [ref=e200]:
+                  - link "FEZZO - Kids ↗" [ref=e201] [cursor=pointer]:
+                    - /url: https://soundcloud.com/fezzomusic/fezzo-kids-extended-1?utm_medium=api&utm_campaign=social_sharing&utm_source=id_318986
+                  - 'link "Panjabi Hit Squad | Boiler Room: Mumbai ↗" [ref=e202] [cursor=pointer]':
+                    - /url: https://soundcloud.com/platform/panjabi-hit-squad-mumbai?utm_medium=api&utm_campaign=social_sharing&utm_source=id_318986
+    - contentinfo [ref=e203]:
+      - generic [ref=e209]:
+        - generic [ref=e210]:
+          - link "Home" [ref=e211] [cursor=pointer]:
+            - /url: /
+          - link "Blog" [ref=e212] [cursor=pointer]:
+            - /url: /notes
+          - link "Projects" [ref=e213] [cursor=pointer]:
+            - /url: /projects
+          - link "Gear" [ref=e214] [cursor=pointer]:
+            - /url: /gear
+          - link "Popcorn" [ref=e215] [cursor=pointer]:
+            - /url: /popcorn
+          - link "Resume" [ref=e216] [cursor=pointer]:
+            - /url: https://cv.harsha.link
+          - link "About" [ref=e217] [cursor=pointer]:
+            - /url: /about
+        - paragraph [ref=e218]: © 2026 Harsha Vardhan. All rights reserved.
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - button "Select element":
+                      - img
+                - generic:
+                  - generic:
+                    - button "Open comments":
+                      - generic:
+                        - img
+                - generic:
+                  - generic:
+                    - button "Copy all comments":
+                      - img
+              - generic:
+                - button "Disable React Grab" [pressed]
+          - button "Collapse toolbar":
+            - img

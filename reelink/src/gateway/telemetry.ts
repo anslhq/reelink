@@ -1,4 +1,4 @@
-// AI SDK v6 telemetry settings for Reelink.
+// AI SDK v6 telemetry settings for Reck.
 //
 // We do NOT provide a custom OpenTelemetry tracer at v0.1 — the SDK's default
 // is fine and OpenTelemetry exporters are explicitly deferred to v0.2.
@@ -25,6 +25,6 @@ export function telemetryFor(
   return {
     isEnabled: true,
     functionId,
-    metadata: { ...metadata, "reelink.function": functionId },
+    metadata: { ...metadata, "reck.function": functionId },
   };
 }

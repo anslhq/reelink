@@ -1,0 +1,5 @@
+{"ts":0.45,"level":"info","message":"bippy install-hook-only init script installed first","stream":"react_source","order":1}
+{"ts":0.458,"level":"info","message":"bippy/react-grab recorder init script installed second","stream":"react_source","order":2}
+{"ts":0.601,"level":"info","message":"react-grab runtime annotation recorder applied after navigation","stream":"react_source"}
+{"ts":0.604,"level":"info","message":"react/source capture unavailable","reason":"React hook was present, but no bippy/react-grab component/source events were emitted (init recorder installed)"}
+{"ts":2.957,"level":"info","message":"react/source capture unavailable","reason":"React hook was present, but no bippy/react-grab component/source events were emitted (init recorder installed)"}

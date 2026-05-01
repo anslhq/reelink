@@ -1,0 +1,15 @@
+{
+  "name": "reck-vite-react-second-target-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "bun run scripts/build.ts",
+    "start": "bun run scripts/start.ts"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "fixture-only",
+    "vite": "fixture-only",
+    "react": "fixture-only",
+    "react-dom": "fixture-only"
+  }
+}

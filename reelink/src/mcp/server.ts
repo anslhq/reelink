@@ -2,13 +2,13 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import { registerAnalysisTools } from "./tools/analysis.js";
-import { registerDevxTools } from "./tools/devx.js";
+import { registerDiagnosticsTools } from "./tools/diagnostics.js";
 import { registerRecordingTools, registerRunTools } from "./tools/recording.js";
 import { registerQueryTools, registerRetrievalTools } from "./tools/retrieval.js";
 
 export function createReelinkMcpServer(): McpServer {
   const server = new McpServer({
-    name: "reelink",
+    name: "reck",
     version: "0.0.0",
   });
 
@@ -17,7 +17,7 @@ export function createReelinkMcpServer(): McpServer {
   registerRecordingTools(server);
   registerQueryTools(server);
   registerRunTools(server);
-  registerDevxTools(server);
+  registerDiagnosticsTools(server);
 
   return server;
 }

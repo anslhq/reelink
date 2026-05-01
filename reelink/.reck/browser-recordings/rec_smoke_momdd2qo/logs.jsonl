@@ -1,0 +1,6 @@
+{"ts":1.255,"level":"info","message":"bippy install-hook-only init script installed first","stream":"react_source","order":1}
+{"ts":1.274,"level":"info","message":"bippy/react-grab recorder init script installed second","stream":"react_source","order":2}
+{"ts":1.408,"type":"info","text":"smoke app boot token=[redacted]","location":{"url":"","lineNumber":9,"columnNumber":12},"level":"info","stream":"console"}
+{"ts":1.517,"level":"info","message":"react-grab runtime annotation recorder applied after navigation","stream":"react_source"}
+{"ts":1.53,"level":"info","message":"react/source capture unavailable","reason":"React hook was present, but no bippy/react-grab component/source events were emitted (init recorder installed)"}
+{"ts":1.694,"type":"error","text":"panel opened password=[redacted]","location":{"url":"","lineNumber":13,"columnNumber":14},"level":"error","stream":"console"}
