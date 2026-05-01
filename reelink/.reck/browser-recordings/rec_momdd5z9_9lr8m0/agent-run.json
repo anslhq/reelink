@@ -1,0 +1,73 @@
+{
+  "recording_id": "rec_momdd5z9_9lr8m0",
+  "task_description": "Verify shared child gateway records a simple page observation",
+  "target_url": "https://example.com",
+  "success": true,
+  "status": "completed",
+  "summary": "Recorded agent run for task: Verify shared child gateway records a simple page observation. 2/2 actions completed with status completed. Eval evidence status: deterministic.",
+  "steps": [
+    {
+      "index": 0,
+      "action": {
+        "type": "snapshot",
+        "save_dom": true
+      },
+      "status": "ok",
+      "observation": {
+        "session_id": "rec_momdd5z9_9lr8m0",
+        "url": "https://example.com/",
+        "title": "Example Domain",
+        "text": "### Page\n- Page URL: https://example.com/\n- Page Title: Example Domain\n- Console: 1 errors, 0 warnings\n### Snapshot\n```yaml\n- generic [ref=e2]:\n  - heading \"Example Domain\" [level=1] [ref=e3]\n  - paragraph [ref=e4]: This domain is for use in documentation examples without needing permission. Avoid use in operations.\n  - paragraph [ref=e5]:\n    - link \"Learn more\" [ref=e6] [cursor=pointer]:\n      - /url: https://iana.org/domains/example\n```",
+        "dom_path": "/Users/harsha/Developer/hackathon/reelink/.reck/browser-recordings/rec_momdd5z9_9lr8m0/dom/snapshot-0001.html"
+      }
+    },
+    {
+      "index": 1,
+      "action": {
+        "type": "wait",
+        "ms": 250
+      },
+      "status": "ok",
+      "observation": {
+        "session_id": "rec_momdd5z9_9lr8m0",
+        "ok": true,
+        "waited_ms": 250,
+        "url": "https://example.com/"
+      }
+    }
+  ],
+  "recent_observation": {
+    "frame_path": "/Users/harsha/Developer/hackathon/reelink/.reck/browser-recordings/rec_momdd5z9_9lr8m0/frames/frame-0002.png",
+    "dom_summary": "html:1, head:1, title:1, meta:1, style:1, body:1, div:1, h1:1, p:2, a:1",
+    "component_map": null,
+    "network_since_last": [
+      {
+        "ts": 0.609,
+        "event": "request",
+        "method": "GET",
+        "url": "https://example.com/",
+        "resource_type": "document"
+      },
+      {
+        "ts": 0.654,
+        "event": "response",
+        "status": 200,
+        "url": "https://example.com/",
+        "ok": true,
+        "redacted_headers": {
+          "age": "6439",
+          "allow": "GET, HEAD",
+          "cf-cache-status": "HIT",
+          "cf-ray": "9f4bca4548ca4f28-SYD",
+          "content-encoding": "br",
+          "content-type": "text/html",
+          "date": "Fri, 01 May 2026 03:44:52 GMT",
+          "last-modified": "Fri, 01 May 2026 01:24:29 GMT",
+          "server": "cloudflare"
+        }
+      }
+    ],
+    "console_since_last": []
+  },
+  "eval_evidence": "eval-evidence.json"
+}

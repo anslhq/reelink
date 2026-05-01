@@ -1,0 +1,16 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>Reck smoke app</title></head>
+<body>
+  <main data-reck-component="SmokeApp" data-source-file="src/SmokeApp.tsx" data-source-line="7" data-secret-token="raw-secret">
+    <button id="nav" data-reck-component="SmokeButton" data-source-file="src/SmokeButton.tsx" data-source-line="11">Open panel</button>
+    <section id="panel" data-reck-component="SmokePanel" data-source-file="src/SmokePanel.tsx" data-source-line="21">Ready</section>
+  </main>
+  <script>
+    console.info('smoke app boot token=console-secret');
+    fetch('data:application/json,{"ok":true}').catch(() => undefined);
+    document.getElementById('nav').addEventListener('click', () => {
+      document.getElementById('panel').hidden = false;
+      console.error('panel opened password=panel-secret');
+    });
+  </script>
+
+</body></html>

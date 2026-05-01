@@ -1,230 +1,209 @@
-# Reelink
+# Reck
 
-> Temporal memory for AI coding agents.
+> Video-as-state for AI coding and browser agents.
 
-Coding agents are snapshot-bound. They see one screenshot, one DOM dump, one tool call. **Reelink turns screen recordings into queryable, timestamped WorkItems** that Codex (and any MCP-aware agent) can cite, retrieve, and act on across time.
+Reck turns screen recordings and recorded browser sessions into timestamp-aligned state packages that agents can query over time. Layer 0 is the adoption wedge: give Reck a `.mov`, `.mp4`, or `.webm` path and get structured `findings` with timestamps. Layer 1 adds browser-recording state such as trace, DOM/runtime, React/source, network, console, frames, and manifest evidence. Layer 2 lets an agent record its own browser task through the same package model.
 
-Bug findings are the first WorkItem source. Email is next.
+Reck was previously called Reelink. Old Reelink names remain only as historical context, migration compatibility, or local-development compatibility when explicitly labeled.
 
-Built at the **OpenAI Codex Hackathon Sydney**, April 29 2026 at UTS Tech Central. Fourth Codex hackathon in the world, after San Francisco, Singapore, and Bengaluru.
+## Public Identity
 
----
+- Product: Reck
+- npm package: `@anslai/reck`
+- Binaries: `reck` and `reck-mcp`
+- MCP server name: `reck`
+- MCP tools: `reck_*`
+- Recording storage: `.reck/`
+- Reck-owned environment variables: `RECK_*`
+- Domains: `tryreck.dev` and defensive secondary `tryreck.app`
+- Repository target: `anslhq/reck`
 
-## The brief
-
-The morning briefing from Gabriel Chua (host) and Satya (OpenAI ANZ lead) framed the day around a single question:
-
-> "Why are you going to build what was practically impossible before Codex?"
-
-Judging rubric (verbatim from the brief):
-- **Clarity of idea**
-- **Technical execution**
-- **Completeness**
-- **Impact / insight** (social impact considered)
-- **Creative / correct uses of Codex**
-
-Reelink answers the brief directly:
-**Couldn't be built before Codex** because the demo flow requires a coding agent that reads MCP tool output, retrieves a `WorkItem` by id, and reasons over a real codebase to find the responsible file. That entire chain — agent loop + MCP + threads + computer use — is the Codex harness, not a wrapper around it. We built *on top of* the harness, exactly as the brief invited.
-
----
-
-## Why this matters
-
-Screen recording is the most accessible bug-reporting medium humans have. Coding agents can't natively reason over time-varying UI: motion bugs (transition flicker, FOUC, layout shift mid-animation, race conditions in optimistic updates) are invisible to a single screenshot. Reelink closes that gap with a tiny MCP server that:
-
-1. Accepts an arbitrary `.mov`/`.mp4`/`.webm` path,
-2. Sends raw video to a video-native VLM (`qwen/qwen3.6-flash` via OpenRouter),
-3. Returns a structured `WorkItem[]` with timestamps, severity, confidence, and a 6-state lifecycle,
-4. Persists the recording as a queryable folder so the agent can retrieve frames, findings, and deterministic answers without re-running the model.
-
----
-
-## The wedge
-
-Most "AI bug report" tools today (Jam.dev, Disbug, FlowLens, etc.) either require a Chrome extension on the live site, a custom recording harness, a SaaS account, or all three. None of them write a verified regression and none expose video as agent state.
-
-Reelink's positioning is **temporal memory for coding agents** — recordings as queryable state, not as opaque artifacts. The output schema is a `WorkItem[]` with a 6-state lifecycle (the public seed of a broader work-state primitive). The wedge product is a single MCP tool: `reelink_analyze(path)`.
-
----
-
-## What's shipped
-
-| Tool | Status | What it does |
-|---|---|---|
-| `reelink_analyze(path, focus, fps_sample)` | ✅ | Raw video → `WorkItem[]` via `qwen/qwen3.6-flash`. ~10–20s wall, structured JSON one round-trip. |
-| `reelink_get_finding(rid, finding_id)` | ✅ | Retrieve a specific WorkItem by id from cached analysis. |
-| `reelink_get_frame(rid, ts)` | ✅ | Get the nearest sampled frame path for a timestamp; returns `{path, frame_index, frame_ts, delta_sec, exists}`. |
-| `reelink_query(rid, question)` | ✅ | Deterministic Q&A over the recording — 12 patterns (summary, list work items, by ts, by severity, by type, by id, streams, prod_build, etc.). Returns `null + patterns_tried` for unmatched questions. |
-| `reelink record <url>` | ✅ | CLI subcommand: opens headed Chromium at the URL, captures a `.webm`, stops on ENTER / Ctrl+C / `--max-seconds`. |
-| `reelink_get_dom`, `reelink_get_components`, `reelink_run` | ⬜ roadmap | Reserved for the recording-state-package and agent-self-recording layers. |
-
-**Stack:** TypeScript + Bun + Node 20+. Raw `@modelcontextprotocol/sdk`. Vercel AI SDK v6. `@openrouter/ai-sdk-provider`. Playwright the library. `ffmpeg-static`. `react-grab` (for the recording-state layer). Apache 2.0.
-
----
-
-## Architecture
-
-Three layers of value, each strictly more capable than the last:
-
-- **Layer 0 (shipped):** paste a video, get structured findings with timestamps. The wedge.
-- **Layer 1 (roadmap):** each recording becomes a folder of timestamp-aligned state — video, Playwright trace (action-aligned DOM/network/console/sources), bippy fiber commits, react-grab element-pointer events, network HAR, console logs, source dictionary. Single-MCP gateway: Reelink spawns Playwright MCP as a child via CDP attach.
-- **Layer 2 (roadmap):** agent records its own browser session via `reelink_run`. The recording is both the eval evidence and the next-action input.
-
----
-
-## WorkItem schema
-
-```ts
-type WorkItem = {
-  id: string;
-  ts: number;                                       // seconds into recording
-  type: string;                                     // bug taxonomy (Qwen-classified)
-  severity: "low" | "medium" | "high";
-  title: string;
-  confidence: number;                               // 0..1
-  description?: string;
-
-  // work-state lifecycle
-  state: "detected" | "prepared" | "approved" | "routed" | "executed" | "completed";
-  approval_state: "pending" | "approved" | "rejected" | null;
-  routed_to: string | null;
-  completed_at: string | null;
-  source: "video";                                  // first source; future: "email", "log"
-  intent: "fix" | "investigate" | "track";
-};
-```
-
-Layer 0 emits `state: "detected"`, `approval_state: "pending"`, `intent: "fix"`, `source: "video"`. Future sources (email triage, log triage) plug into the same lifecycle without changing downstream consumers.
-
----
-
-## Recording package
-
-Each `reelink_analyze` call writes a self-contained recording package under `.reelink/<id>/`:
-
-```
-.reelink/<recording_id>/
-  manifest.json     # recording_id, duration, model metadata, streams map, prod_build flag
-  analysis.json     # AnalyzeResult { recording_id, summary, work_items[], next_steps[] }
-  frames/           # sampled JPEGs (default 1 fps, capped at 64)
-  source video reference (or copy if --copy-imported-videos is set)
-```
-
-The `streams` map is **honest**: each optional stream (`trace`, `fiber_commits`, `source_dictionary`, `react_grab_events`, `network`, `console`, `eval`) is marked `available` / `not_collected` / `unavailable` / `failed` with a reason. Retrieval tools never invent data — `reelink_get_dom` returns `{ status: "not_collected" }` until the recording-state layer ships. Honest absence beats fabricated presence.
-
----
+For v0.1, the implementation intentionally remains in the nested `reelink/` package folder while Reck public identity work proceeds. Root promotion or a folder rename to `reck/` is deferred because a broad filesystem move would touch package scripts, tests, docs, generated artifacts, and local checkout workflows; until that migration is completed and verified, `reelink/` is the package-local implementation path only, not the public product identity.
 
 ## Install
 
+The public launch direction is `@anslai/reck`, with `bunx` for one-off use and installed `reck` for repeated use once the package is published:
+
 ```bash
-git clone https://github.com/anslhq/reelink.git
-cd reelink/reelink
+bunx -y @anslai/reck init
+bunx -y @anslai/reck doctor
+```
+
+For repeated use after publication:
+
+```bash
+bun install -g @anslai/reck
+reck init
+reck doctor
+```
+
+Current local verification does not prove public npm availability. Verifier evidence is from the local checkout, built package output, dry-run package checks, and local CLI/MCP smoke paths.
+
+Local checkout testing uses the nested v0.1 implementation path:
+
+```bash
+cd /Users/harsha/Developer/hackathon/reelink
 bun install
+bun run typecheck
 bun run build
 bun link
+reck init
+reck doctor
 ```
 
-That puts `reelink` and `reelink-mcp` on your `$PATH` (typically `~/.bun/bin/`).
+`bun link` may expose local compatibility binaries. Public docs and demos should use `bunx -y @anslai/reck mcp`, installed `reck mcp`, or `reck-mcp`. Any `reelink`, `reelink-mcp`, `bunx -y reelink`, `reelink_*`, `REELINK_*`, or `.reelink/` behavior is legacy compatibility only.
 
-### Configure as MCP server
+## MCP Configuration
 
-**Codex CLI** (`~/.codex/config.toml`):
+Codex CLI (`~/.codex/config.toml`):
 
 ```toml
-[mcp_servers.reelink]
-command = "reelink-mcp"
+[mcp_servers.reck]
+command = "bunx"
+args = ["-y", "@anslai/reck", "mcp"]
 
-[mcp_servers.reelink.env]
+[mcp_servers.reck.env]
 OPENROUTER_API_KEY = "<your-key>"
-REELINK_OPENROUTER_MODEL = "qwen/qwen3.6-flash"
-REELINK_LOG_LEVEL = "info"
+RECK_OPENROUTER_MODEL = "qwen/qwen3.6-flash"
+RECK_LOG_LEVEL = "info"
 ```
 
-**Cursor** (`~/.cursor/mcp.json`):
+If Reck is installed globally, use:
+
+```toml
+[mcp_servers.reck]
+command = "reck"
+args = ["mcp"]
+```
+
+Cursor (`~/.cursor/mcp.json`):
 
 ```json
 {
   "mcpServers": {
-    "reelink": {
-      "command": "reelink-mcp",
+    "reck": {
+      "command": "bunx",
+      "args": ["-y", "@anslai/reck", "mcp"],
       "env": {
         "OPENROUTER_API_KEY": "<your-key>",
-        "REELINK_OPENROUTER_MODEL": "qwen/qwen3.6-flash"
+        "RECK_OPENROUTER_MODEL": "qwen/qwen3.6-flash"
       }
     }
   }
 }
 ```
 
-Restart your client. `codex mcp list` should show `reelink` running.
+API keys stay in environment variables or MCP env blocks. `~/.reck/config.json` is for non-secret local defaults only.
 
----
+## Tool Surface
 
-## Use
+The public target MCP surface is:
 
-### Capture + analyze (CLI)
+- `reck_analyze(path, fps_sample=4, focus="any")`
+- `reck_get_finding(recording_id, finding_id)`
+- `reck_get_frame(recording_id, ts)`
+- `reck_get_dom(recording_id, ts)`
+- `reck_get_components(recording_id, ts, x?, y?)`
+- `reck_query(recording_id, question)`
+- `reck_record_start(url)`
+- `reck_record_stop(recording_id)`
+- `reck_record_status(recording_id)`
+- `reck_browser_snapshot`
+- `reck_browser_click`
+- `reck_browser_type`
+- `reck_browser_navigate`
+- `reck_browser_wait`
+- `reck_browser_evaluate`
+- `reck_browser_take_screenshot`
+- `reck_run(task_description, target_url)`
 
-```bash
-# 1. Open your buggy app, capture the bug
-reelink record https://your-site.com
-# headed Chrome opens — reproduce the bug — press ENTER to stop
-# saves to demo-recordings/reelink-<timestamp>.webm
+Layer 0 returns `findings` as the normative public contract:
 
-# 2. Analyze
-reelink analyze demo-recordings/reelink-<timestamp>.webm "view-transition flicker"
-# returns AnalyzeResult JSON, persists package to .reelink/<id>/
+```json
+{
+  "recording_id": "...",
+  "duration_sec": 8.4,
+  "summary": "...",
+  "findings": [
+    {
+      "id": "f1",
+      "ts": 2.1,
+      "type": "view-transition-overlap",
+      "severity": "medium",
+      "title": "Old route title overlaps new page title",
+      "confidence": 0.72
+    }
+  ],
+  "next_steps": ["..."]
+}
 ```
 
-### Or, from your coding agent
+If `work_items` appears in older output or legacy recordings, treat it as compatibility/detail data. It is not the headline Layer 0 response.
 
-In Codex CLI or Cursor:
+## Recording Package
 
+New Reck packages write under `.reck/`:
+
+```text
+.reck/<recording_id>/
+  manifest.json
+  analysis.json
+  frames/
+  video reference or copy
 ```
-Use the reelink MCP to analyze ~/Downloads/portfolio-bug.mov, then
-identify the source file most likely to contain the bug.
+
+Browser-generated packages may include:
+
+```text
+.reck/browser-recordings/<recording_id>/
+  video.webm
+  trace.zip
+  fiber-commits.jsonl
+  source-dictionary.json
+  react-grab-events.jsonl
+  network.har
+  console.jsonl
+  manifest.json
+  frames/
 ```
 
-The agent calls `reelink_analyze` via MCP, gets back a `WorkItem[]`, then reasons over your codebase to find the responsible file. Follow up with `reelink_get_finding`, `reelink_get_frame`, or `reelink_query` to drill in by id, timestamp, or natural-language pattern.
+The manifest must be honest. Optional streams are marked `available`, `not_collected`, `unavailable`, or `failed` with reasons. Retrieval tools must not invent DOM, React/source, network, console, eval, or component evidence when a stream was not collected.
 
----
+## Observed Evidence
 
-## Acknowledgements
+Current docs should describe proof at the level actually observed:
 
-**OpenAI Codex Hackathon Sydney organizers**
-- **Gabriel Chua** — hackathon host, OpenAI
-- **Satya** — OpenAI ANZ Lead
-- **Murray Herbs** — Director of Entrepreneurship, UTS Startups; co-host
-- **Alex** and the **UTS Startups team** — venue and ops at UTS Tech Central
-- **Aaron, James, Sharon, Tom** — UTS volunteer crew across the day
-- **OpenAI Australia engineering and DevRel** — technical judges and mentors throughout the day
+- Layer 0: implemented and exercised through observed local raw-video analysis tests and smokes; public docs now center `reck_analyze` and `findings` without treating this as public-package proof.
+- Layer 1: external real-app landing proof exists via recording `rec_molq08a6_dxwy9o` at `/Users/harsha/Documents/GitHub/landing/.reck/browser-recordings/rec_molq08a6_dxwy9o/`, including source dictionary evidence from `next_prerender_stack`. That artifact's manifest marks `react_grab_events` as `not_collected`, so it is not proof of visible react-grab annotation or event capture.
+- Layer 1: second-target proof is covered by `reelink/tests/second-target-proof.test.ts` using fixture path `reelink/tests/fixtures/vite-react-second-target/`.
+- Layer 1 gateway: child Playwright MCP smoke evidence exists for the single registered Reck MCP pattern.
+- Layer 1 recording: recording smoke evidence exists for browser recording artifacts.
+- Layer 2/eval: agent-run/eval evidence has been reported by implementation agents, but final public workflow claims still need to stay tied to the commands and artifacts actually run.
 
-**Codex platform features that made the build possible**
-- **GPT-5.5** as the default Codex model
-- **Codex App Server** and **`@openai/codex-sdk`**
-- **MCP support across Codex CLI, Codex desktop app, and Codex Web** — single Reelink server serves all three
-- **Codex Skills** and **Codex Plugins**
+External caveats remain: do not claim a live OpenRouter smoke passed without a live key and observed run; do not claim a real Codex client setup passed unless the setup prompt was run in a real Codex session; do not claim a final edited demo video exists until recorded.
 
-**Open-source primitives Reelink builds on**
-- **Aiden Bai** — `bippy` and `react-grab`; the React-introspection primitives the recording-state layer is built on
-- **Microsoft Playwright team** — `@playwright/mcp` and the underlying Playwright library
-- **Anthropic** — `@modelcontextprotocol/sdk` and the MCP spec
-- **Vercel** — AI SDK v6
-- **Alibaba Qwen team** — `qwen3.6-flash` (and the `qwen3-vl-*` family) for video-native VLM
-- **OpenRouter** — single-endpoint hosting that lets us pick a video-capable Qwen route at runtime via the live model catalog
+## Non-Goals and Caveats
 
----
+- No rrweb in v0.1.
+- No bundled agentation runtime in v0.1.
+- No second user-registered Playwright MCP server; users register one MCP server named `reck`.
+- No exact token-saving, benchmark, or broad performance claims until measured.
+- No broad framework support claims beyond observed targets. React/source evidence is best described as observed on the landing app and the second target fixture, with graceful degradation elsewhere.
+- No self-hosted Qwen fallback support claim unless implemented and verified. Mention SGLang, Ollama, and Hugging Face only as roadmap or explicitly verified fallback work.
 
-## License
+## Compatibility and Migration
 
-Apache 2.0. See [`LICENSE`](./LICENSE) and [`NOTICE`](./NOTICE) for full text and third-party attribution.
+Reck may temporarily read or expose legacy Reelink names during migration:
 
----
+- `reelink_*` MCP tools: compatibility aliases only, not public examples.
+- `[mcp_servers.reelink]`: old config block; migrate to `[mcp_servers.reck]`.
+- `reelink` / `reelink-mcp` / `bunx -y reelink`: local-development or legacy command paths only.
+- `REELINK_*`: legacy env vars. `RECK_*` wins when both are set.
+- `.reelink/`: legacy recording storage. New writes go to `.reck/`; old recordings may be read through documented compatibility behavior.
+- `reelink/`: intentionally retained nested v0.1 implementation path; root promotion or `reck/` folder rename is deferred until a dedicated migration can update and verify scripts, tests, docs, generated artifacts, and local checkout workflows.
 
 ## Status
 
-**v0.1 — submitted to OpenAI Codex Hackathon Sydney April 29 2026.**
+Pre-release. The OpenSpec change id `build-reelink-mcp` and some internal paths preserve the historical name. Public-facing docs, setup, demos, and release copy should use Reck unless discussing migration or historical context.
 
-GitHub: <https://github.com/anslhq/reelink>
-ANSL: <https://github.com/anslhq>
-
-Issues and PRs welcome.
+Apache-2.0. See `LICENSE` and `NOTICE`.

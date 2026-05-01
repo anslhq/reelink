@@ -17,6 +17,8 @@ export type PreparedOpenRouterRawVideoModel = {
   provider: "openrouter";
   modelId: string;
   route: "openrouter-native-video";
+  inputModalities: string[];
+  routeFamily: "qwen-raw-video";
   model: ReturnType<ReturnType<typeof createOpenRouter>["chat"]>;
 };
 
@@ -24,6 +26,8 @@ export type RawVideoProviderAnalysis = {
   provider: string;
   modelId: string;
   route: string;
+  inputModalities?: string[];
+  routeFamily?: string;
   summary: string;
   workItems: WorkItem[];
   nextSteps: string[];
@@ -48,6 +52,8 @@ export async function prepareOpenRouterRawVideoModel(config: ReelinkConfig): Pro
     provider: "openrouter",
     modelId: selected.id,
     route: "openrouter-native-video",
+    inputModalities: selected.inputModalities,
+    routeFamily: "qwen-raw-video",
     model: openrouter.chat(selected.id, { plugins: [{ id: "response-healing" }] }),
   };
 }
@@ -96,6 +102,8 @@ export async function analyzeRawVideoWithOpenRouter(input: OpenRouterRawVideoAna
     provider: selected.provider,
     modelId: selected.modelId,
     route: selected.route,
+    inputModalities: selected.inputModalities,
+    routeFamily: selected.routeFamily,
     summary: result.output.summary,
     workItems: mapModelAnalyzeOutputToWorkItems(result.output, (index, type) => {
       log.warn({ index, type }, "dropping finding with null timestamp");
@@ -129,7 +137,7 @@ export function buildNativeVideoPrompt(sourceVideoPath: string, durationSec: num
     {
       type: "text" as const,
       text:
-        "You are Reelink, a QA-focused video analyst for browser UI recordings. " +
+        "You are Reck, a QA-focused video analyst for browser UI recordings. " +
         "Watch the raw video, not a still screenshot. Find UI bugs that require motion or timing evidence: animation flicker, transition overlap, loading flashes, layout shifts, stale state, z-index bugs, clipped text, and navigation glitches. " +
         `Recording duration: ${durationSec ?? "unknown"} seconds. Focus hint: ${focus}. ` +
         "Return strict JSON matching the schema. Use timestamps in seconds. If evidence is weak, return low confidence or no findings.",

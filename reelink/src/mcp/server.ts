@@ -8,7 +8,7 @@ import { registerQueryTools, registerRetrievalTools } from "./tools/retrieval.js
 
 export function createReelinkMcpServer(): McpServer {
   const server = new McpServer({
-    name: "reelink",
+    name: "reck",
     version: "0.0.0",
   });
 

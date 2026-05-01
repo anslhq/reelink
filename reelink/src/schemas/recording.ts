@@ -18,6 +18,8 @@ export const ManifestSchema = z.object({
     max_frames: z.number(),
     long_edge_px: z.number(),
     frame_count: z.number(),
+    strategy: z.literal("cached-frame-retrieval"),
+    primary_analysis_uses_raw_video: z.boolean(),
   }),
   artifacts: z.record(z.string(), z.string()),
   streams: z.record(z.string(), StreamStatusSchema),
@@ -26,9 +28,23 @@ export const ManifestSchema = z.object({
       provider: z.string(),
       model_id: z.string(),
       route: z.string(),
+      route_family: z.string().optional(),
+      input_modalities: z.array(z.string()).optional(),
+      drift_policy: z.string().optional(),
     })
     .optional(),
-  prod_build: z.boolean().default(false),
+  prod_build: z.boolean().nullable().default(null),
+  prod_build_status: z.enum(["detected", "unknown", "unavailable"]).default("unknown"),
+  prod_build_reason: z.string().optional(),
+  relations: z
+    .object({
+      imported_video_id: z.string().optional(),
+      browser_recording_id: z.string().optional(),
+      agent_run_id: z.string().optional(),
+      related_recording_ids: z.array(z.string()).optional(),
+      relation: z.string().optional(),
+    })
+    .optional(),
   safety: z.object({
     redaction_applied: z.boolean(),
     redaction_rules: z.array(z.string()).optional(),
@@ -42,6 +58,15 @@ export const ManifestSchema = z.object({
         url: z.string().optional(),
         title: z.string().optional(),
         tree_summary: z.string().optional(),
+      }),
+    )
+    .optional(),
+  frame_snapshots: z
+    .array(
+      z.object({
+        ts: z.number(),
+        path: z.string(),
+        url: z.string().optional(),
       }),
     )
     .optional(),

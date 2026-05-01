@@ -6,6 +6,8 @@ export const PATTERN_IDS = [
   "severity_findings",
   "next_steps",
   "frame_at_timestamp",
+  "dom_at_timestamp",
+  "components_at_timestamp",
   "type_findings",
   "finding_confidence",
   "available_streams",

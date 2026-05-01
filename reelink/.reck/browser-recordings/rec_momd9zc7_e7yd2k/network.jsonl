@@ -1,0 +1,2 @@
+{"ts":0.807,"event":"request","method":"GET","url":"https://example.com/","resource_type":"document"}
+{"ts":0.876,"event":"response","status":200,"url":"https://example.com/","ok":true,"redacted_headers":{"age":"6291","allow":"GET, HEAD","cf-cache-status":"HIT","cf-ray":"9f4bc6a61fa6aafb-SYD","content-encoding":"br","content-type":"text/html","date":"Fri, 01 May 2026 03:42:23 GMT","last-modified":"Fri, 01 May 2026 01:24:29 GMT","server":"cloudflare"}}

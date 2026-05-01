@@ -1,0 +1,235 @@
+{
+  "recording_id": "rec_molpfllr_rcoq5q",
+  "session_id": "rec_molpfllr_rcoq5q",
+  "created_at": "2026-04-30T16:34:54.111Z",
+  "source_type": "browser_recording",
+  "source_path": "http://127.0.0.1:4110/",
+  "duration_sec": null,
+  "preprocessing": {
+    "requested_fps": 0,
+    "effective_fps": 0,
+    "max_frames": 0,
+    "long_edge_px": 0,
+    "frame_count": 0,
+    "strategy": "cached-frame-retrieval",
+    "primary_analysis_uses_raw_video": false
+  },
+  "artifacts": {
+    "video": "video.webm",
+    "network": "network.jsonl",
+    "network_har": "network.har",
+    "console": "console.jsonl",
+    "logs": "logs.jsonl",
+    "dom": "dom",
+    "trace": "trace.zip",
+    "frames": "frames",
+    "fiber_commits": "fiber-commits.jsonl",
+    "source_dictionary": "source-dictionary.json",
+    "react_grab_events": "react-grab-events.jsonl",
+    "gateway": "gateway.jsonl"
+  },
+  "streams": {
+    "layer0": {
+      "status": "not_collected",
+      "reason": "Browser recording was captured without Layer 0 video analysis"
+    },
+    "frames": {
+      "status": "available"
+    },
+    "trace": {
+      "status": "available"
+    },
+    "dom": {
+      "status": "available"
+    },
+    "fiber_commits": {
+      "status": "available"
+    },
+    "source_dictionary": {
+      "status": "not_collected",
+      "reason": "No React source dictionary was available on the page"
+    },
+    "react_grab_events": {
+      "status": "not_collected",
+      "reason": "No react-grab compatible component events were available on the page"
+    },
+    "network": {
+      "status": "available"
+    },
+    "console": {
+      "status": "available"
+    },
+    "logs": {
+      "status": "available"
+    },
+    "gateway": {
+      "status": "available"
+    },
+    "eval": {
+      "status": "not_collected",
+      "reason": "No verification artifact generated"
+    }
+  },
+  "prod_build": null,
+  "prod_build_status": "unavailable",
+  "prod_build_reason": "React production-mode detection was not available from captured runtime evidence",
+  "relations": {
+    "browser_recording_id": "rec_molpfllr_rcoq5q",
+    "related_recording_ids": [],
+    "relation": "browser_capture"
+  },
+  "safety": {
+    "redaction_applied": true,
+    "redaction_rules": [],
+    "redacted_streams": []
+  },
+  "url": "http://127.0.0.1:4110/",
+  "final_url": "http://127.0.0.1:4110/",
+  "max_seconds": 6,
+  "duration_limit_hit": true,
+  "video": "/Users/harsha/Developer/hackathon/reelink/.reck/browser-recordings/rec_molpfllr_rcoq5q/video.webm",
+  "dom_snapshots": [
+    {
+      "ts": 9.091,
+      "path": "/Users/harsha/Developer/hackathon/reelink/.reck/browser-recordings/rec_molpfllr_rcoq5q/dom/snapshot-0001.html",
+      "url": "http://127.0.0.1:4110/",
+      "title": "Harsha Vardhan",
+      "tree_summary": "html:1, head:1, meta:19, link:9, script:85, title:1, style:2, body:1, div:91, template:3, header:1, a:35"
+    }
+  ],
+  "frame_snapshots": [
+    {
+      "ts": 5.063,
+      "path": "frames/frame-0001.png",
+      "url": "http://127.0.0.1:4110/"
+    },
+    {
+      "ts": 9.145,
+      "path": "frames/frame-0002.png",
+      "url": "http://127.0.0.1:4110/"
+    }
+  ],
+  "timeline_alignment": {
+    "frames": {
+      "origin": "recording_start_monotonic",
+      "unit": "seconds",
+      "event_count": 2,
+      "artifact": "frames"
+    },
+    "dom": {
+      "origin": "recording_start_monotonic",
+      "unit": "seconds",
+      "event_count": 1,
+      "artifact": "dom"
+    },
+    "network": {
+      "origin": "recording_start_monotonic",
+      "unit": "seconds",
+      "event_count": 118,
+      "artifact": "network.jsonl"
+    },
+    "console": {
+      "origin": "recording_start_monotonic",
+      "unit": "seconds",
+      "event_count": 7,
+      "artifact": "console.jsonl"
+    },
+    "fiber_commits": {
+      "origin": "page_performance_now_relative_to_recording_start",
+      "unit": "seconds",
+      "event_count": 1,
+      "artifact": "fiber-commits.jsonl"
+    },
+    "react_grab_events": {
+      "origin": "page_performance_now_relative_to_recording_start",
+      "unit": "seconds",
+      "event_count": 0,
+      "artifact": "react-grab-events.jsonl"
+    },
+    "trace": {
+      "origin": "playwright_trace_clock_aligned_by_recording_start",
+      "unit": "seconds",
+      "event_count": 1,
+      "artifact": "trace.zip"
+    },
+    "work_items": {
+      "origin": "recording_start_monotonic",
+      "unit": "seconds",
+      "event_count": 0,
+      "artifact": "analysis.json when Layer 0/eval has run"
+    },
+    "gateway": {
+      "origin": "recording_start_monotonic",
+      "unit": "seconds",
+      "event_count": 1,
+      "artifact": "gateway.jsonl"
+    },
+    "logs": {
+      "origin": "recording_start_monotonic",
+      "unit": "seconds",
+      "event_count": 10,
+      "artifact": "logs.jsonl"
+    }
+  },
+  "react_capture": {
+    "hook_order": [
+      "install-hook-only",
+      "react-grab-global-bundle",
+      "secure-recorder"
+    ],
+    "secure_applied": true,
+    "dangerously_run_in_production": false,
+    "direct_libraries": {
+      "bippy": "install-hook-only-compatible-devtools-hook",
+      "react_grab": "react-grab/dist/index.global.js headless bundle plus element-pointer recorder"
+    }
+  },
+  "gateway": {
+    "mode": "single-mcp",
+    "cdp_endpoint_available": true,
+    "child_status": "available",
+    "child_mode": "playwright-mcp-child",
+    "child_tools": [
+      "browser_click",
+      "browser_close",
+      "browser_console_messages",
+      "browser_drag",
+      "browser_drop",
+      "browser_evaluate",
+      "browser_file_upload",
+      "browser_fill_form",
+      "browser_handle_dialog",
+      "browser_hover",
+      "browser_mouse_click_xy",
+      "browser_mouse_down",
+      "browser_mouse_drag_xy",
+      "browser_mouse_move_xy",
+      "browser_mouse_up",
+      "browser_mouse_wheel",
+      "browser_navigate",
+      "browser_navigate_back",
+      "browser_network_requests",
+      "browser_press_key",
+      "browser_resize",
+      "browser_run_code",
+      "browser_select_option",
+      "browser_snapshot",
+      "browser_tabs",
+      "browser_take_screenshot",
+      "browser_type",
+      "browser_wait_for"
+    ],
+    "forwarded_tools": {
+      "reck_browser_navigate": "browser_navigate",
+      "reck_browser_click": "browser_mouse_click_xy",
+      "reck_browser_type": "browser_type",
+      "reck_browser_evaluate": "browser_evaluate",
+      "reck_browser_snapshot": "browser_snapshot",
+      "reck_browser_take_screenshot": "browser_take_screenshot"
+    }
+  },
+  "tool_classification": {
+    "classification": "single-mcp-gateway",
+    "reason": "Reck exposes a single MCP surface for curated browser automation while Reck-owned Playwright recording captures native video, trace, DOM, network, console, and runtime streams."
+  }
+}

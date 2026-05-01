@@ -45,7 +45,7 @@ export async function runLayer0AnalysisPipeline(
     recording_id: recording.id,
     duration_sec: preprocessed.durationSec,
     summary: analysis.summary,
-    work_items: analysis.workItems,
+    findings: analysis.workItems.map(toPublicFinding),
     next_steps: analysis.nextSteps,
   };
 
@@ -57,7 +57,7 @@ export async function runLayer0AnalysisPipeline(
 
 function assertSupportedVideoExtension(videoPath: string): void {
   if (!/\.(mov|mp4|webm)$/i.test(videoPath)) {
-    throw new AnalysisPipelineError("unsupported_extension", "reelink_analyze supports .mov, .mp4, and .webm files");
+    throw new AnalysisPipelineError("unsupported_extension", "reck_analyze supports .mov, .mp4, and .webm files");
   }
 }
 
@@ -110,6 +110,17 @@ function normalizeProviderResult(result: Layer0ProviderResult): Layer0ProviderRe
       if (item.ts == null) return [];
       return [WorkItemSchema.parse(item)];
     }),
+  };
+}
+
+function toPublicFinding(item: Layer0ProviderResult["workItems"][number]) {
+  return {
+    id: item.id,
+    ts: item.ts,
+    type: item.type,
+    severity: item.severity,
+    title: item.title,
+    confidence: item.confidence,
   };
 }
 

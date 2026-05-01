@@ -1,6 +1,6 @@
 // MCP tool middleware: wraps a tool handler with structured entry/exit logging.
 //
-// Every Reelink-exposed tool runs through this so we have visibility into:
+// Every Reck-exposed tool runs through this so we have visibility into:
 //   - tool name + invocation id
 //   - arg shape (truncated, never logs raw bytes / pixels / video paths beyond filename)
 //   - duration

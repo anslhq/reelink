@@ -365,6 +365,8 @@ describe("OpenRouter provider paths", () => {
         provider: "openrouter",
         modelId: "qwen/qwen3.6-flash",
         route: "openrouter-native-video",
+        inputModalities: ["video", "text"],
+        routeFamily: "qwen-raw-video",
         summary: "The transition flickers after navigation.",
         nextSteps: ["Inspect route transition state around navigation."],
       });

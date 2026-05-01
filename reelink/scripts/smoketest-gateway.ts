@@ -19,7 +19,7 @@ import { loadDotEnv } from "../src/config/dotenv.js";
 loadDotEnv();
 
 const log = logger("smoketest-gateway");
-const MODEL_ID = process.env["REELINK_OPENROUTER_MODEL"] ?? "qwen/qwen3.6-flash";
+const MODEL_ID = process.env["RECK_OPENROUTER_MODEL"] ?? process.env["REELINK_OPENROUTER_MODEL"] ?? "qwen/qwen3.6-flash";
 
 await assertOpenRouterVideoModel(MODEL_ID);
 
@@ -75,6 +75,49 @@ const FindingSchema = z.object({
 
 const startedAt = performance.now();
 try {
+  const result = await generateStructuredFinding();
+  logPass({
+    latency_ms: Math.round(performance.now() - startedAt),
+    input_tokens: result.usage?.inputTokens,
+    output_tokens: result.usage?.outputTokens,
+    finding: normalizeFinding(result.finding),
+    mode: result.mode,
+  });
+  process.exit(0);
+} catch (err) {
+  if (isNoOutputGeneratedError(err)) {
+    log.warn(
+      { latency_ms: Math.round(performance.now() - startedAt), err: errorMessage(err) },
+      "structured output produced no object; retrying with plain JSON validation",
+    );
+    try {
+      const result = await generatePlainJsonFinding();
+      logPass({
+        latency_ms: Math.round(performance.now() - startedAt),
+        input_tokens: result.usage?.inputTokens,
+        output_tokens: result.usage?.outputTokens,
+        finding: normalizeFinding(result.finding),
+        mode: result.mode,
+      });
+      process.exit(0);
+    } catch (fallbackErr) {
+      logFailure(fallbackErr, startedAt);
+      process.exit(1);
+    }
+  }
+  logFailure(err, startedAt);
+  process.exit(1);
+}
+
+type Finding = z.infer<typeof FindingSchema>;
+
+type FindingSmokeResult = {
+  finding: Finding;
+  usage?: { inputTokens?: number; outputTokens?: number };
+  mode: "structured-output" | "plain-json";
+};
+
+async function generateStructuredFinding(): Promise<FindingSmokeResult> {
   const result = await generateText({
     model: openrouter.chat(MODEL_ID, { plugins: [{ id: "response-healing" }] }),
     output: Output.object({ schema: FindingSchema }),
@@ -87,32 +130,74 @@ try {
     experimental_telemetry: telemetryFor("smoketest.vlm-call", {
       model: MODEL_ID,
       provider: "openrouter",
+      mode: "structured-output",
     }),
   });
+  return { finding: result.output, usage: result.usage, mode: "structured-output" };
+}
 
-  const latency = Math.round(performance.now() - startedAt);
-  const finding = result.output.bug_detected ? result.output : { ...result.output, ts: null };
-  log.info(
-    {
-      latency_ms: latency,
-      input_tokens: result.usage?.inputTokens,
-      output_tokens: result.usage?.outputTokens,
-      finding,
-    },
-    "smoke test PASS — model returned strict JSON",
-  );
-  process.exit(0);
-} catch (err) {
-  const latency = Math.round(performance.now() - startedAt);
+async function generatePlainJsonFinding(): Promise<FindingSmokeResult> {
+  const result = await generateText({
+    model: openrouter.chat(MODEL_ID, { plugins: [{ id: "response-healing" }] }),
+    messages: [
+      {
+        role: "user",
+        content: [
+          ...mediaParts,
+          {
+            type: "text",
+            text: "Return only a single JSON object with keys bug_detected, ts, type, severity, description, confidence. No markdown fences.",
+          },
+        ],
+      },
+    ],
+    experimental_telemetry: telemetryFor("smoketest.vlm-call", {
+      model: MODEL_ID,
+      provider: "openrouter",
+      mode: "plain-json-retry",
+    }),
+  });
+  return { finding: parseFindingJson(result.text), usage: result.usage, mode: "plain-json" };
+}
+
+function parseFindingJson(text: string): Finding {
+  const trimmed = text.trim();
+  const jsonText = trimmed.startsWith("```") ? trimmed.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "") : trimmed;
+  return FindingSchema.parse(JSON.parse(jsonText));
+}
+
+function normalizeFinding(finding: Finding): Finding {
+  return finding.bug_detected ? finding : { ...finding, ts: null };
+}
+
+function logPass(result: {
+  latency_ms: number;
+  input_tokens?: number;
+  output_tokens?: number;
+  finding: Finding;
+  mode: FindingSmokeResult["mode"];
+}): void {
+  log.info(result, "smoke test PASS — model returned valid JSON");
+}
+
+function logFailure(err: unknown, startedAt: number): void {
   log.error(
     {
-      latency_ms: latency,
-      err: err instanceof Error ? err.message : String(err),
+      latency_ms: Math.round(performance.now() - startedAt),
+      err: errorMessage(err),
       stack: err instanceof Error ? err.stack?.slice(0, 1000) : undefined,
     },
     "smoke test FAIL",
   );
-  process.exit(1);
+}
+
+function isNoOutputGeneratedError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  return err.name === "AI_NoOutputGeneratedError" || err.message.includes("No output generated");
+}
+
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
 }
 
 function mediaTypeForVideo(path: string): string {

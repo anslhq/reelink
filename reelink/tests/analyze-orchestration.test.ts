@@ -14,21 +14,23 @@ import { AnalyzeArgsSchema, type AnalyzeResult, type Manifest } from "../src/sch
 
 const baseRecording: ImportedVideoRecording = {
   id: "recording-1",
-  root: "/workspace/.reelink/recording-1",
-  framesDir: "/workspace/.reelink/recording-1/frames",
-  manifestPath: "/workspace/.reelink/recording-1/manifest.json",
-  analysisPath: "/workspace/.reelink/recording-1/analysis.json",
+  root: "/workspace/.reck/recording-1",
+  framesDir: "/workspace/.reck/recording-1/frames",
+  manifestPath: "/workspace/.reck/recording-1/manifest.json",
+  analysisPath: "/workspace/.reck/recording-1/analysis.json",
   sourceVideoPath: "/workspace/source.mov",
 };
 
 const basePreprocessed: PreprocessedVideo = {
   durationSec: 4.2,
-  framePaths: ["/workspace/.reelink/recording-1/frames/frame-0001.jpg", "/workspace/.reelink/recording-1/frames/frame-0002.jpg"],
+  framePaths: ["/workspace/.reck/recording-1/frames/frame-0001.jpg", "/workspace/.reck/recording-1/frames/frame-0002.jpg"],
   policy: {
     requestedFps: 4,
     effectiveFps: 1,
     maxFrames: 64,
     longEdgePx: 896,
+    strategy: "cached-frame-retrieval",
+    primaryAnalysisUsesRawVideo: true,
   },
 };
 
@@ -48,10 +50,21 @@ const workItem = {
   intent: "fix" as const,
 };
 
+const publicFinding = {
+  id: "f1",
+  ts: 1.5,
+  type: "transition-flicker",
+  severity: "high" as const,
+  title: "Route transition flickers",
+  confidence: 0.88,
+};
+
 const modelResult: Layer0ProviderResult = {
   provider: "openrouter",
   modelId: "qwen/qwen3.6-flash",
   route: "openrouter-native-video",
+  inputModalities: ["text", "image", "video"],
+  routeFamily: "qwen-raw-video",
   summary: "The transition flickers after navigation.",
   workItems: [workItem],
   nextSteps: ["Inspect route transition state around navigation."],
@@ -80,7 +93,7 @@ describe("video analyze orchestration", () => {
       recording_id: "recording-1",
       duration_sec: 4.2,
       summary: "Model analysis was not run because OPENROUTER_API_KEY is not configured.",
-      work_items: [],
+      findings: [],
       next_steps: ["Set OPENROUTER_API_KEY for OpenRouter-hosted VL analysis."],
     });
     expect(writes.manifest?.model).toBeUndefined();
@@ -97,7 +110,7 @@ describe("video analyze orchestration", () => {
       recording_id: "recording-1",
       duration_sec: 4.2,
       summary: "The transition flickers after navigation.",
-      work_items: [workItem],
+      findings: [publicFinding],
       next_steps: ["Inspect route transition state around navigation."],
     });
     expect(writes.analysisPath).toBe(baseRecording.analysisPath);
@@ -107,6 +120,10 @@ describe("video analyze orchestration", () => {
       provider: "openrouter",
       model_id: "qwen/qwen3.6-flash",
       route: "openrouter-native-video",
+      route_family: "qwen-raw-video",
+      input_modalities: ["text", "image", "video"],
+      drift_policy:
+        "Primary Layer 0 analysis requires an OpenRouter Qwen route with video input; image-only or unknown Qwen routes fail instead of falling back to frames.",
     });
     expect(providerCalls[0]).toMatchObject({
       durationSec: 4.2,
@@ -123,7 +140,7 @@ describe("video analyze orchestration", () => {
 
     await expect(runLayer0AnalysisPipeline({ path: "clip.avi", fps_sample: 4, focus: "any" }, adapters)).rejects.toMatchObject({
       kind: "unsupported_extension",
-      message: "reelink_analyze supports .mov, .mp4, and .webm files",
+      message: "reck_analyze supports .mov, .mp4, and .webm files",
     });
     expect(storageCalls).toEqual([]);
   });
@@ -210,8 +227,8 @@ describe("video analyze orchestration", () => {
 
     const result = await runLayer0AnalysisPipeline({ path: "clip.mov", fps_sample: 4, focus: "any" }, adapters);
 
-    expect(result.work_items).toEqual([{ ...workItem, id: "keep-me", ts: 3, title: "Keep timestamped item" }]);
-    expect(writes.analysis?.work_items).toEqual(result.work_items);
+    expect(result.findings).toEqual([{ ...publicFinding, id: "keep-me", ts: 3, title: "Keep timestamped item" }]);
+    expect(writes.analysis?.findings).toEqual(result.findings);
   });
 
   test("records preprocessing defaults on the manifest for cached frames and retrieval", () => {
@@ -223,6 +240,8 @@ describe("video analyze orchestration", () => {
       max_frames: 64,
       long_edge_px: 896,
       frame_count: 2,
+      strategy: "cached-frame-retrieval",
+      primary_analysis_uses_raw_video: true,
     });
     expect(manifest.streams).toEqual({
       frames: { status: "available" },

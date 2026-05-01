@@ -8,7 +8,7 @@ export const importedVideoRecordingId = "imported-video-recording";
 export const deterministicQueryRecordingId = "query-recording";
 
 export function createImportedVideoFixture(id: string): void {
-  const root = join(".reelink", id);
+  const root = join(".reck", id);
   const frames = join(root, "frames");
   mkdirSync(frames, { recursive: true });
   writeFileSync(join(frames, "frame-0003.jpg"), "fixture frame\n");
@@ -17,46 +17,48 @@ export function createImportedVideoFixture(id: string): void {
 }
 
 export function createLegacyImportedVideoFixture(id: string): void {
-  const root = join(".reelink", id);
-  mkdirSync(root, { recursive: true });
-  writeJson(join(root, "analysis.json"), {
-    recording_id: id,
-    duration_sec: 3,
-    summary: "Legacy fixture",
-    findings: [
-      {
-        id: "legacy-1",
-        ts: 1.25,
-        type: "visual-regression",
-        severity: "low",
-        title: "Legacy finding shape",
-        confidence: 0.5,
-        description: "Legacy package used findings instead of work_items.",
-      },
-    ],
-    next_steps: [],
-  });
-  writeJson(join(root, "manifest.json"), {
-    recording_id: id,
-    created_at: "2026-04-29T00:00:00.000Z",
-    source_type: "imported_video",
-    duration_sec: 3,
-    preprocessing: {
-      requested_fps: 1,
-      effective_fps: 1,
-      max_frames: 64,
-      long_edge_px: 896,
-      frame_count: 0,
-    },
-    artifacts: {},
-    streams: {},
-    prod_build: false,
-    safety: { redaction_applied: false },
-  });
+  createImportedVideoPackageFixture(join(".reelink", id), id, { legacyAnalysis: true });
+}
+
+export function createSiblingImportedVideoFixture(id: string): void {
+  createImportedVideoPackageFixture(`${id}.reck`, id);
+}
+
+export function createLegacySiblingImportedVideoFixture(id: string): void {
+  createImportedVideoPackageFixture(`${id}.reelink`, id, { legacyAnalysis: true });
+}
+
+export function createImportedVideoPackageFixture(root: string, id: string, options: { legacyAnalysis?: boolean } = {}): void {
+  const frames = join(root, "frames");
+  mkdirSync(frames, { recursive: true });
+  writeFileSync(join(frames, "frame-0003.jpg"), "fixture frame\n");
+  writeJson(
+    join(root, "analysis.json"),
+    options.legacyAnalysis
+      ? {
+          recording_id: id,
+          duration_sec: 3,
+          summary: "Legacy fixture",
+          findings: [
+            {
+              id: "legacy-1",
+              ts: 1.25,
+              type: "visual-regression",
+              severity: "low",
+              title: "Legacy finding shape",
+              confidence: 0.5,
+              description: "Legacy package used findings instead of work_items.",
+            },
+          ],
+          next_steps: [],
+        }
+      : importedVideoAnalysis(id),
+  );
+  writeJson(join(root, "manifest.json"), options.legacyAnalysis ? legacyImportedVideoManifest(id) : importedVideoManifest(id));
 }
 
 export function createImportedVideoFixtureWithLayer0Unavailable(id: string): void {
-  const root = join(".reelink", id);
+  const root = join(".reck", id);
   const frames = join(root, "frames");
   mkdirSync(frames, { recursive: true });
   writeFileSync(join(frames, "frame-0003.jpg"), "fixture frame\n");
@@ -64,7 +66,7 @@ export function createImportedVideoFixtureWithLayer0Unavailable(id: string): voi
   const manifest = importedVideoManifest(id) as Manifest;
   manifest.streams = {
     ...manifest.streams,
-    layer0: { status: "not_collected", reason: "Fixture: sampled frames unavailable for retrieval" },
+    frames: { status: "not_collected", reason: "Fixture: sampled frames unavailable for retrieval" },
   };
   writeJson(join(root, "manifest.json"), manifest);
 }
@@ -72,8 +74,10 @@ export function createImportedVideoFixtureWithLayer0Unavailable(id: string): voi
 export function createBrowserArtifactFixture(id: string): void {
   const root = join(".reelink", LEGACY_BROWSER_RECORDINGS_DIR, id);
   const dom = join(root, "dom");
+  const frames = join(root, "frames");
   mkdirSync(dom, { recursive: true });
-  writeJson(join(root, "manifest.json"), { session_id: id, url: "http://localhost:3000" });
+  mkdirSync(frames, { recursive: true });
+  writeJson(join(root, "manifest.json"), { session_id: id, url: "http://localhost:3000", preprocessing: { effective_fps: 1 } });
   writeFileSync(join(root, "console.jsonl"), `${JSON.stringify({ ts: 0.5, type: "error", text: "Hydration warning" })}\nnot-json\n`);
   writeFileSync(
     join(root, "network.jsonl"),
@@ -81,10 +85,12 @@ export function createBrowserArtifactFixture(id: string): void {
   );
   writeFileSync(join(dom, "snapshot-0001.html"), "<main>first</main>\n");
   writeFileSync(join(dom, "snapshot-0002.html"), "<main>second</main>\n");
+  writeFileSync(join(frames, "frame-0002.jpg"), "browser frame 2\n");
+  writeFileSync(join(frames, "frame-0004.jpg"), "browser frame 4\n");
 }
 
 export function createRuntimeArtifactFixture(id: string, options: { componentSource?: "react-grab" | "fiber" } = {}): void {
-  const root = join(".reelink", id);
+  const root = join(".reck", id);
   const dom = join(root, "dom");
   mkdirSync(dom, { recursive: true });
   writeFileSync(join(root, "video.webm"), "fixture video\n");
@@ -103,7 +109,10 @@ export function createRuntimeArtifactFixture(id: string, options: { componentSou
       join(root, "fiber-commits.jsonl"),
       `${JSON.stringify({
         ts: 0.8,
+        finding_id: "fiber-finding-1",
+        frame_idx: 2,
         component: "SettingsPage",
+        fiber_diff: { changed_props: ["theme"] },
         component_stack: [
           { display_name: "SettingsPage", fiber_id: "fiber-2", source: { file: "src/routes/settings.tsx", line: 33, column: 5 } },
         ],
@@ -115,12 +124,33 @@ export function createRuntimeArtifactFixture(id: string, options: { componentSou
       `${JSON.stringify({
         ts: 1.1,
         route: "/settings",
+        finding_id: "react-grab-finding-1",
+        frame_idx: 3,
         element_path: "html > body > main > button",
         bounding_box: { x: 10, y: 20, width: 120, height: 40 },
         component: "SaveButton",
-        props: { label: "Save", token: "[redacted]" },
+        selected_text: "Save",
+        css_classes: ["btn", "btn-primary"],
+        computed_styles: { display: "inline-flex", color: "rgb(255, 255, 255)" },
+        accessibility: { role: "button", name: "Save", disabled: false },
+        confidence: 0.88,
+        props: { label: "Save", token: "raw-secret", nested: { password: "pw" } },
         component_stack: [
           { display_name: "SaveButton", fiber_id: "fiber-1", source: { file: "src/components/SaveButton.tsx", line: 12, column: 7 } },
+          { display_name: "SettingsPage", fiber_id: "fiber-2", source: { file: "src/routes/settings.tsx", line: 33, column: 5 } },
+        ],
+      })}\n${JSON.stringify({
+        ts: 1.3,
+        finding_id: "react-grab-finding-2",
+        frame_idx: 4,
+        element_path: "html > body > main > form",
+        bounding_box: { x: 8, y: 16, width: 260, height: 160 },
+        component: "SettingsForm",
+        selected_text: "",
+        css_classes: ["settings-form"],
+        props: { apiKey: "raw-api-key" },
+        component_stack: [
+          { display_name: "SettingsForm", fiber_id: "fiber-3" },
           { display_name: "SettingsPage", fiber_id: "fiber-2", source: { file: "src/routes/settings.tsx", line: 33, column: 5 } },
         ],
       })}\n`,
@@ -138,6 +168,8 @@ export function createRuntimeArtifactFixture(id: string, options: { componentSou
       max_frames: 0,
       long_edge_px: 0,
       frame_count: 0,
+      strategy: "cached-frame-retrieval",
+      primary_analysis_uses_raw_video: false,
     },
     artifacts: {
       video: "video.webm",
@@ -162,7 +194,9 @@ export function createRuntimeArtifactFixture(id: string, options: { componentSou
       console: { status: "available" },
       eval: { status: "not_collected", reason: "No verification artifact generated" },
     },
-    prod_build: false,
+    prod_build: null,
+    prod_build_status: "unknown",
+    relations: { browser_recording_id: id, related_recording_ids: [], relation: "browser_capture" },
     safety: { redaction_applied: true },
     dom_snapshots: [
       {
@@ -181,6 +215,25 @@ export function createRuntimeArtifactFixture(id: string, options: { componentSou
       },
     ],
   });
+}
+
+function legacyImportedVideoManifest(id: string) {
+  return {
+    ...importedVideoManifest(id),
+    duration_sec: 3,
+    preprocessing: {
+      requested_fps: 1,
+      effective_fps: 1,
+      max_frames: 64,
+      long_edge_px: 896,
+      frame_count: 1,
+      strategy: "cached-frame-retrieval",
+      primary_analysis_uses_raw_video: true,
+    },
+    artifacts: { analysis: "analysis.json", frames: "frames/" },
+    streams: { frames: { status: "available" } },
+    safety: { redaction_applied: false },
+  };
 }
 
 function importedVideoAnalysis(id: string) {
@@ -237,17 +290,24 @@ function importedVideoManifest(id: string) {
       max_frames: 64,
       long_edge_px: 896,
       frame_count: 6,
+      strategy: "cached-frame-retrieval",
+      primary_analysis_uses_raw_video: true,
     },
-    artifacts: { analysis: "analysis.json", frames: "frames" },
+    artifacts: { analysis: "analysis.json", frames: "frames/", source_video: "/fixtures/imported-video.mov" },
     streams: {
-      layer0: { status: "available" },
-      dom: { status: "not_collected", reason: "Runtime DOM capture was not available" },
-      components: { status: "not_collected", reason: "Runtime component capture was not available" },
-      network: { status: "not_collected", reason: "Browser recording was not used" },
-      console: { status: "not_collected", reason: "Browser recording was not used" },
+      frames: { status: "available" },
+      trace: { status: "not_collected", reason: "Layer 0 imported video analysis only" },
+      fiber_commits: { status: "not_collected", reason: "Layer 0 imported video analysis only" },
+      source_dictionary: { status: "not_collected", reason: "Layer 0 imported video analysis only" },
+      react_grab_events: { status: "not_collected", reason: "Layer 0 imported video analysis only" },
+      network: { status: "not_collected", reason: "Layer 0 imported video analysis only" },
+      console: { status: "not_collected", reason: "Layer 0 imported video analysis only" },
+      eval: { status: "not_collected", reason: "No verification artifact generated" },
     },
     model: { provider: "openrouter", model_id: "qwen/qwen3.6-flash", route: "raw-video" },
-    prod_build: false,
+    prod_build: null,
+    prod_build_status: "unknown",
+    relations: { imported_video_id: id, related_recording_ids: [], relation: "source_import" },
     safety: { redaction_applied: false },
   };
 }

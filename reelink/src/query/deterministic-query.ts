@@ -10,6 +10,7 @@ import {
   tryBrowserRecordingDeterministicQuery,
   type DeterministicQueryAnswer,
 } from "../recordings/store.js";
+import { getRuntimeComponents, getRuntimeDom, getRuntimeFindingContext } from "../runtime-artifacts/retrieval.js";
 import { PATTERN_IDS } from "./constants.js";
 import type { DeterministicQueryResponse } from "./deterministic-query-schema.js";
 import { extractFindingId, extractSeverity, parseTimestamp, typeAliases } from "./slots.js";
@@ -156,6 +157,60 @@ export async function answerDeterministicQuery(recordingId: string, question: st
     }
   }
 
+  tried.push("dom_at_timestamp");
+  if (/\b(dom|html|tree|snapshot)\b/.test(normalized) && !/\bbrowser\b/.test(normalized)) {
+    const queryTs = parseTimestamp(normalized);
+    if (queryTs != null) {
+      const dom = await getRuntimeDom(recordingId, queryTs);
+      return {
+        recording_id: recordingId,
+        question,
+        answer: dom.status === "available"
+          ? {
+              kind: "dom",
+              query_ts: queryTs,
+              path: dom.path,
+              tree_summary: dom.tree_summary,
+              snapshot_ts: dom.snapshot_ts,
+              delta_sec: dom.delta_sec,
+            }
+          : null,
+        reason: dom.status === "available" ? undefined : `${dom.stream} unavailable: ${dom.reason}`,
+        patterns_matched: ["dom_at_timestamp"],
+        patterns_tried: [...tried],
+      };
+    }
+  }
+
+  tried.push("components_at_timestamp");
+  if (/\b(components?|react|source|fiber)\b/.test(normalized)) {
+    const queryTs = parseTimestamp(normalized);
+    if (queryTs != null) {
+      const components = await getRuntimeComponents(recordingId, queryTs);
+      return {
+        recording_id: recordingId,
+        question,
+        answer: components.status === "available"
+          ? {
+              kind: "components",
+              query_ts: queryTs,
+              component: components.component,
+              file: components.file,
+              line: components.line,
+              column: components.column,
+              ts: components.ts,
+              delta_sec: components.delta_sec,
+              source: components.source,
+              source_references: components.source_references,
+            }
+          : null,
+        reason: components.status === "available" ? undefined : `${components.stream} unavailable: ${components.reason}`,
+        patterns_matched: ["components_at_timestamp"],
+        patterns_tried: [...tried],
+      };
+    }
+  }
+
   tried.push("type_findings");
   const type = await extractKnownType(recordingId, normalized);
   if (type) {
@@ -213,7 +268,7 @@ export async function answerDeterministicQuery(recordingId: string, question: st
     return {
       recording_id: recordingId,
       question,
-      answer: item ? { kind: "finding", match: item } : null,
+      answer: item ? { kind: "finding", match: item, context: await getRuntimeFindingContext(recordingId, item) } : null,
       reason: item ? undefined : "finding not found",
       patterns_matched: ["finding_by_id"],
       patterns_tried: [...tried],

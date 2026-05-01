@@ -1,7 +1,7 @@
 import type { ReelinkConfig } from "../config/env.js";
 import type { AnalyzeResult, Manifest, WorkItem } from "../schemas.js";
 
-/** Recording layout for an imported-video Layer 0 analysis package under `.reelink/<id>/`. */
+/** Recording layout for an imported-video Layer 0 analysis package under `.reck/<id>/`. */
 export type ImportedVideoRecording = {
   id: string;
   root: string;
@@ -16,6 +16,8 @@ export type PreprocessPolicy = {
   effectiveFps: number;
   maxFrames: number;
   longEdgePx: number;
+  strategy: "cached-frame-retrieval";
+  primaryAnalysisUsesRawVideo: boolean;
 };
 
 /** Deterministic jpeg frames under `frames/` for retrieval and future non-raw providers. */
@@ -29,6 +31,8 @@ export type Layer0ProviderResult = {
   provider: string;
   modelId: string;
   route: string;
+  inputModalities?: string[];
+  routeFamily?: string;
   summary: string;
   workItems: WorkItem[];
   nextSteps: string[];

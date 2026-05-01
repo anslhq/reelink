@@ -1,0 +1,3 @@
+- main [ref=e2]:
+  - button "Open panel" [active] [ref=e3]
+  - generic [ref=e4]: Ready

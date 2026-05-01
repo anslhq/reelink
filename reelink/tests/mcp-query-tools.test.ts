@@ -4,11 +4,14 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
+import type { ReelinkConfig } from "../src/config/env.js";
 import { registerQueryTools } from "../src/mcp/tools/retrieval.js";
+import { answerHybridQuery, type QueryGptFallbackAdapter } from "../src/query/index.js";
 import { resolveLegacyBrowserRecordingArtifactDir } from "../src/recordings/store.js";
 import {
   createBrowserArtifactFixture,
   createImportedVideoFixture,
+  createRuntimeArtifactFixture,
   deterministicQueryRecordingId,
 } from "./fixtures/recording-fixtures.js";
 
@@ -36,7 +39,7 @@ let registeredTools: RegisteredTool[];
 
 beforeEach(async () => {
   previousCwd = process.cwd();
-  workspace = await mkdtemp(join(tmpdir(), "reelink-query-tools-"));
+  workspace = await mkdtemp(join(tmpdir(), "reck-query-tools-"));
   process.chdir(workspace);
   createImportedVideoFixture(deterministicQueryRecordingId);
   registeredTools = [];
@@ -46,7 +49,7 @@ beforeEach(async () => {
     },
   } as unknown as McpServer;
   registerQueryTools(server);
-  query = registeredTools.find((tool) => tool.name === "reelink_query")?.handler ?? failQueryTool;
+  query = registeredTools.find((tool) => tool.name === "reck_query")?.handler ?? failQueryTool;
 });
 
 afterEach(async () => {
@@ -54,12 +57,12 @@ afterEach(async () => {
   await rm(workspace, { recursive: true, force: true });
 });
 
-describe("deterministic recording query tool", () => {
+describe("hybrid recording query tool", () => {
   test("registers the current query MCP tool schema and envelope", async () => {
     expect(registeredTools).toHaveLength(1);
-    expect(registeredTools[0]?.name).toBe("reelink_query");
+    expect(registeredTools[0]?.name).toBe("reck_query");
     expect(registeredTools[0]?.config).toMatchObject({
-      title: "Query a Reelink recording deterministically",
+      title: "Query a Reck recording",
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
@@ -93,7 +96,7 @@ describe("deterministic recording query tool", () => {
     ["layout shift findings", "type_findings", { kind: "work_items", type: "layout-shift", items: [expect.objectContaining({ id: "f1" })] }],
     ["how confident is finding f2", "finding_confidence", { kind: "confidence", finding_id: "f2", confidence: 0.74, title: "Spinner flashes after content appears", severity: "medium" }],
     ["what streams are available", "available_streams", { kind: "streams", redaction_applied: false }],
-    ["was this a prod build", "prod_build", { kind: "prod_build", prod_build: false, evidence: "manifest.prod_build" }],
+    ["was this a prod build", "prod_build", { kind: "prod_build", prod_build: null, evidence: "manifest.prod_build" }],
     ["finding f1", "finding_by_id", { kind: "finding", match: expect.objectContaining({ id: "f1" }) }],
     ["how long is the recording", "recording_duration", { kind: "duration", duration_sec: 12.5 }],
     ["what's the bug near 8 seconds", "finding_at_timestamp", { kind: "finding", query_ts: 8, match: expect.objectContaining({ id: "f2" }), delta_sec: 0.09999999999999964 }],
@@ -104,7 +107,7 @@ describe("deterministic recording query tool", () => {
     expect(result.structuredContent.answer).toMatchObject(expectedAnswer);
   });
 
-  test("returns deterministic null fallback for unknown questions", async () => {
+  test("returns deterministic null fallback for unknown questions when GPT fallback is disabled", async () => {
     const result = await query({
       recording_id: deterministicQueryRecordingId,
       question: "what is the airspeed velocity of an unladen swallow",
@@ -123,6 +126,8 @@ describe("deterministic recording query tool", () => {
         "severity_findings",
         "next_steps",
         "frame_at_timestamp",
+        "dom_at_timestamp",
+        "components_at_timestamp",
         "type_findings",
         "finding_confidence",
         "available_streams",
@@ -130,6 +135,102 @@ describe("deterministic recording query tool", () => {
         "finding_by_id",
         "recording_duration",
       ],
+    });
+  });
+
+  test("deterministic answer bypasses GPT fallback adapter", async () => {
+    let calls = 0;
+    const response = await answerHybridQuery(deterministicQueryRecordingId, "summary", {
+      enabled: true,
+      config: fakeConfig({ queryGptFallbackEnabled: true }),
+      adapter: async () => {
+        calls += 1;
+        return { response: "should not run", citations: [] };
+      },
+    });
+
+    expect(calls).toBe(0);
+    expect(response.patterns_matched).toEqual(["summary"]);
+    expect(response.answer).toMatchObject({ kind: "summary" });
+  });
+
+  test("answers runtime artifact questions before optional GPT fallback", async () => {
+    createRuntimeArtifactFixture("runtime-mcp-query");
+
+    let calls = 0;
+    const response = await answerHybridQuery("runtime-mcp-query", "which component is at 1.1 seconds", {
+      enabled: true,
+      config: fakeConfig({ queryGptFallbackEnabled: true }),
+      adapter: async () => {
+        calls += 1;
+        return { response: "should not run", citations: [] };
+      },
+    });
+
+    expect(calls).toBe(0);
+    expect(response.patterns_matched).toEqual(["components_at_timestamp"]);
+    expect(response.answer).toMatchObject({
+      kind: "components",
+      component: "SaveButton",
+      file: "src/components/SaveButton.tsx",
+    });
+  });
+
+  test("unknown question with enabled GPT fallback and no OpenAI key returns structured not-run response", async () => {
+    const response = await answerHybridQuery(
+      deterministicQueryRecordingId,
+      "which component should I inspect for the visual regression",
+      {
+        enabled: true,
+        config: fakeConfig({ queryGptFallbackEnabled: true, openAiApiKey: undefined }),
+      },
+    );
+
+    expect(response.answer).toBe(null);
+    expect(response.patterns_matched).toEqual([]);
+    expect(response.patterns_tried.at(-1)).toBe("gpt_fallback:not_run");
+    expect(response.reason).toContain("OPENAI_API_KEY not configured");
+  });
+
+  test("unknown question with fake GPT adapter returns grounded answer from package evidence", async () => {
+    const seen: { workItemTitles: string[]; sourcePath?: string; streamKeys: string[] }[] = [];
+    const fakeAdapter: QueryGptFallbackAdapter = async ({ analysis, manifest, streams }) => {
+      seen.push({
+        workItemTitles: analysis.work_items.map((item) => item.title),
+        sourcePath: manifest.source_path,
+        streamKeys: Object.keys(streams),
+      });
+      return {
+        response:
+          "Inspect the transition container because analysis.json reports 'Hero card jumps during transition' and manifest.json marks Layer 0 frames available.",
+        citations: ["analysis.work_items[f1]", "analysis.next_steps[0]", "manifest.streams.layer0"],
+      };
+    };
+
+    const response = await answerHybridQuery(
+      deterministicQueryRecordingId,
+      "which component should I inspect for the visual regression",
+      {
+        enabled: true,
+        config: fakeConfig({ queryGptFallbackEnabled: true }),
+        adapter: fakeAdapter,
+      },
+    );
+
+    expect(seen).toEqual([
+      {
+        workItemTitles: ["Hero card jumps during transition", "Spinner flashes after content appears"],
+        sourcePath: "/fixtures/imported-video.mov",
+        streamKeys: ["frames", "trace", "fiber_commits", "source_dictionary", "react_grab_events", "network", "console", "eval"],
+      },
+    ]);
+    expect(response.patterns_matched).toEqual(["gpt_fallback"]);
+    expect(response.answer).toEqual({
+      kind: "gpt_fallback",
+      response:
+        "Inspect the transition container because analysis.json reports 'Hero card jumps during transition' and manifest.json marks Layer 0 frames available.",
+      citations: ["analysis.work_items[f1]", "analysis.next_steps[0]", "manifest.streams.layer0"],
+      grounded_in: ["analysis.json", "manifest.json", "runtime streams"],
     });
   });
 
@@ -169,5 +270,15 @@ describe("deterministic recording query tool", () => {
 });
 
 async function failQueryTool(): Promise<ToolResult> {
-  throw new Error("reelink_query was not registered");
+  throw new Error("reck_query was not registered");
+}
+
+function fakeConfig(overrides: Partial<ReelinkConfig> = {}): ReelinkConfig {
+  return {
+    homeDir: join(workspace, ".reelink"),
+    configPath: join(workspace, ".reelink", "config.json"),
+    defaultFpsSample: 4,
+    copyImportedVideos: false,
+    ...overrides,
+  };
 }

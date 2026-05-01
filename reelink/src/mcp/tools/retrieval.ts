@@ -8,15 +8,16 @@ import {
   findFrameNearTimestamp,
   findWorkItemById,
 } from "../../recordings/store.js";
+import { getRuntimeFindingContext } from "../../runtime-artifacts/retrieval.js";
 import { WorkItemSchema } from "../../schemas.js";
-import { answerDeterministicQuery, QueryResponseSchema, type DeterministicQueryResponse } from "../../query/index.js";
+import { answerHybridQuery, QueryResponseSchema, type DeterministicQueryResponse } from "../../query/index.js";
 import { withToolLogging } from "../../utils/tool-middleware.js";
 
 export function registerRetrievalTools(server: McpServer): void {
   server.registerTool(
-    "reelink_get_finding",
+    "reck_get_finding",
     {
-      title: "Get a Reelink work item",
+      title: "Get a Reck work item",
       description: "Load analysis.json for a recording and return the WorkItem identified by finding_id.",
       inputSchema: {
         recording_id: z.string(),
@@ -27,6 +28,7 @@ export function registerRetrievalTools(server: McpServer): void {
         finding_id: z.string(),
         work_item: WorkItemSchema.nullable(),
         reason: z.string().optional(),
+        context: z.unknown().optional(),
       },
       annotations: {
         readOnlyHint: true,
@@ -34,19 +36,19 @@ export function registerRetrievalTools(server: McpServer): void {
         idempotentHint: true,
       },
     },
-    withToolLogging("reelink_get_finding", async ({ recording_id, finding_id }) => {
+    withToolLogging("reck_get_finding", async ({ recording_id, finding_id }) => {
       const workItem = await findWorkItemById(recording_id, finding_id);
       const structuredContent = workItem
-        ? { recording_id, finding_id, work_item: workItem }
+        ? { recording_id, finding_id, work_item: workItem, context: await getRuntimeFindingContext(recording_id, workItem) }
         : { recording_id, finding_id, work_item: null, reason: "finding not found" };
       return jsonToolResult(structuredContent);
     }),
   );
 
   server.registerTool(
-    "reelink_get_frame",
+    "reck_get_frame",
     {
-      title: "Get a Reelink frame near a timestamp",
+      title: "Get a Reck frame near a timestamp",
       description: "Read manifest.json and return the nearest sampled frame path for a recording timestamp.",
       inputSchema: {
         recording_id: z.string(),
@@ -68,7 +70,7 @@ export function registerRetrievalTools(server: McpServer): void {
         idempotentHint: true,
       },
     },
-    withToolLogging("reelink_get_frame", async ({ recording_id, ts }) => {
+    withToolLogging("reck_get_frame", async ({ recording_id, ts }) => {
       const frame = await findFrameNearTimestamp(recording_id, ts);
       const structuredContent = frame
         ? {
@@ -96,10 +98,10 @@ export function registerRetrievalTools(server: McpServer): void {
 
 export function registerQueryTools(server: McpServer): void {
   server.registerTool(
-    "reelink_query",
+    "reck_query",
     {
-      title: "Query a Reelink recording deterministically",
-      description: "Answer from analysis.json, manifest.json, work_items, next_steps, frames, and stream metadata. No model calls.",
+      title: "Query a Reck recording",
+      description: "Answer from deterministic analysis/manifest/runtime data first, with optional GPT fallback only for unanswerable questions.",
       inputSchema: {
         recording_id: z.string(),
         question: z.string(),
@@ -111,8 +113,8 @@ export function registerQueryTools(server: McpServer): void {
         idempotentHint: true,
       },
     },
-    withToolLogging("reelink_query", async ({ recording_id, question }) => {
-      const structuredContent: DeterministicQueryResponse = await answerDeterministicQuery(recording_id, question);
+    withToolLogging("reck_query", async ({ recording_id, question }) => {
+      const structuredContent: DeterministicQueryResponse = await answerHybridQuery(recording_id, question);
       return jsonToolResult(structuredContent);
     }),
   );

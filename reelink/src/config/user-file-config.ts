@@ -9,13 +9,14 @@ const FileConfigSchema = z
   })
   .passthrough();
 
-/** Reads non-secret JSON from ~/.reelink/config.json - missing file returns {} */
+/** Reads non-secret JSON from ~/.reck/config.json - missing file returns {} */
 export type UserFileConfig = {
   default_fps_sample?: number;
   copy_imported_videos?: boolean;
 };
 
-export function readUserConfigFile(path: string): UserFileConfig {
-  if (!existsSync(path)) return {};
-  return FileConfigSchema.parse(JSON.parse(readFileSync(path, "utf8")));
+export function readUserConfigFile(path: string, legacyPath?: string): UserFileConfig {
+  const readablePath = existsSync(path) ? path : legacyPath && existsSync(legacyPath) ? legacyPath : null;
+  if (!readablePath) return {};
+  return FileConfigSchema.parse(JSON.parse(readFileSync(readablePath, "utf8")));
 }

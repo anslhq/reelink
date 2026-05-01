@@ -63,7 +63,7 @@ export function selectOpenRouterQwenVideoModelFromCatalog(
   if (firstQwenVideo) return firstQwenVideo;
 
   throw new Error(
-    "OpenRouter catalog did not expose any Qwen model with video input modality. Reelink requires raw video input and will not silently fall back to frame prompts.",
+    "OpenRouter catalog did not expose any Qwen model with video input modality. Reck requires raw video input and will not silently fall back to frame prompts.",
   );
 }
 

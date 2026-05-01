@@ -1,12 +1,20 @@
 {
-  "name": "reelink",
+  "name": "@anslai/reck",
   "version": "0.0.0",
-  "description": "Reelink: video-as-state MCP server for AI coding agents. Records browser sessions as timestamp-aligned state packages and re-links them to your code.",
+  "description": "Reck: video-as-state MCP server for AI coding agents. Records browser sessions as timestamp-aligned state packages and links them to your code.",
   "type": "module",
   "license": "Apache-2.0",
   "bin": {
-    "reelink": "./dist/cli.js",
-    "reelink-mcp": "./dist/server.js"
+    "reck": "./dist/cli.js",
+    "reck-mcp": "./dist/server.js"
+  },
+  "homepage": "https://tryreck.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anslhq/reck.git"
+  },
+  "bugs": {
+    "url": "https://github.com/anslhq/reck/issues"
   },
   "files": [
     "dist",
@@ -26,14 +34,17 @@
     "test": "bun test",
     "clean": "trash dist",
     "postinstall": "bunx --bun playwright install chromium || true",
-    "smoketest:recording": "bun run scripts/generate-playwright-fixture.ts",
+    "smoketest:recording": "bun run scripts/smoketest-recording-package.ts",
     "smoketest:ffmpeg": "bun run scripts/smoketest-ffmpeg.ts",
     "smoketest:gateway": "bun run scripts/smoketest-gateway.ts",
+    "smoketest:child-gateway": "bun run scripts/smoketest-child-gateway.ts",
     "smoketest:logger": "bun run scripts/smoketest-logger.ts"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^3.0.54",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@openrouter/ai-sdk-provider": "^2.8.1",
+    "@playwright/mcp": "^0.0.71",
     "ai": "^6.0.0",
     "ffmpeg-static": "^5.2.0",
     "pino": "^10.3.1",

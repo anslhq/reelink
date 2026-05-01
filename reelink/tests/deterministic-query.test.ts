@@ -8,6 +8,7 @@ import {
   createBrowserArtifactFixture,
   createImportedVideoFixture,
   createImportedVideoFixtureWithLayer0Unavailable,
+  createRuntimeArtifactFixture,
   deterministicQueryRecordingId,
 } from "./fixtures/recording-fixtures.js";
 
@@ -87,21 +88,21 @@ describe("deterministic query engine", () => {
       answer: {
         kind: "streams",
         streams: {
-          layer0: { status: "available" },
-          dom: { status: "not_collected", reason: "Runtime DOM capture was not available" },
-          components: { status: "not_collected", reason: "Runtime component capture was not available" },
-          network: { status: "not_collected", reason: "Browser recording was not used" },
-          console: { status: "not_collected", reason: "Browser recording was not used" },
+          frames: { status: "available" },
+          trace: { status: "not_collected", reason: "Layer 0 imported video analysis only" },
+          react_grab_events: { status: "not_collected", reason: "Layer 0 imported video analysis only" },
+          network: { status: "not_collected", reason: "Layer 0 imported video analysis only" },
+          console: { status: "not_collected", reason: "Layer 0 imported video analysis only" },
         },
-        artifacts: { analysis: "analysis.json", frames: "frames" },
-        preprocessing: { requested_fps: 4, effective_fps: 1, max_frames: 64, long_edge_px: 896, frame_count: 6 },
+        artifacts: { analysis: "analysis.json", frames: "frames/", source_video: "/fixtures/imported-video.mov" },
+        preprocessing: { requested_fps: 4, effective_fps: 1, max_frames: 64, long_edge_px: 896, frame_count: 6, strategy: "cached-frame-retrieval", primary_analysis_uses_raw_video: true },
         redaction_applied: false,
       },
     },
     {
       question: "is the recording prod build",
       matched: "prod_build",
-      answer: { kind: "prod_build", prod_build: false, evidence: "manifest.prod_build" },
+      answer: { kind: "prod_build", prod_build: null, evidence: "manifest.prod_build" },
     },
   ])("answers documented query case: $question", async ({ question, matched, answer }) => {
     const response = await answerDeterministicQuery(deterministicQueryRecordingId, question);
@@ -133,7 +134,48 @@ describe("deterministic query engine", () => {
     });
   });
 
-  test("preserves MCP reelink_query null fallback envelope for unanswerable questions", async () => {
+  test("answers persisted runtime DOM and component questions deterministically", async () => {
+    createRuntimeArtifactFixture("runtime-query-package");
+
+    const dom = await answerDeterministicQuery("runtime-query-package", "dom at 1.1 seconds");
+    const components = await answerDeterministicQuery("runtime-query-package", "component source at 1.1 seconds");
+
+    expect(dom).toMatchObject({
+      answer: {
+        kind: "dom",
+        query_ts: 1.1,
+        path: expect.stringContaining(".reck/runtime-query-package/dom/snapshot-0002.html"),
+        tree_summary: "html:1, body:1, main:1, button:1",
+        snapshot_ts: 1.25,
+        delta_sec: 0.15,
+      },
+      patterns_matched: ["dom_at_timestamp"],
+    });
+    expect(components).toMatchObject({
+      answer: {
+        kind: "components",
+        query_ts: 1.1,
+        component: "SaveButton",
+        file: "src/components/SaveButton.tsx",
+        line: 12,
+        column: 7,
+        ts: 1.1,
+        delta_sec: 0,
+        source: "react_grab_events",
+      },
+      patterns_matched: ["components_at_timestamp"],
+    });
+  });
+
+  test("deterministic DOM and component questions report missing Layer 0 runtime streams", async () => {
+    const dom = await answerDeterministicQuery(deterministicQueryRecordingId, "dom at 2.4 seconds");
+    const components = await answerDeterministicQuery(deterministicQueryRecordingId, "component at 2.4 seconds");
+
+    expect(dom).toMatchObject({ answer: null, reason: "dom unavailable: dom stream is not listed in manifest", patterns_matched: ["dom_at_timestamp"] });
+    expect(components).toMatchObject({ answer: null, reason: "react_grab_events unavailable: Layer 0 imported video analysis only", patterns_matched: ["components_at_timestamp"] });
+  });
+
+  test("preserves MCP reck_query null fallback envelope for unanswerable questions", async () => {
     const unknown = await answerDeterministicQuery(
       deterministicQueryRecordingId,
       "what is the airspeed velocity of an unladen swallow",
@@ -160,4 +202,3 @@ describe("deterministic query engine", () => {
     expect(response.answer).toMatchObject(answer);
   });
 });
-

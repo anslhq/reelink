@@ -2,9 +2,9 @@ import { createHash } from "node:crypto";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { basename, dirname, extname, join, relative, resolve } from "node:path";
 
-import { AnalyzeResultSchema, ManifestSchema, type AnalyzeResult, type Manifest, type WorkItem } from "../schemas.js";
+import { AnalyzeResultSchema, ManifestSchema, StoredAnalysisSchema, type AnalyzeResult, type Manifest, type StoredAnalysis, type WorkItem } from "../schemas.js";
 
-/** Relative to `.reelink/` for legacy MCP browser sessions (pre-canonical package layout). */
+/** Relative to `.reck/` for legacy MCP browser sessions (pre-canonical package layout). */
 export const LEGACY_BROWSER_RECORDINGS_DIR = "browser-recordings" as const;
 
 type ImportedVideoRecording = {
@@ -40,7 +40,7 @@ export function createImportedVideoRecording(
   }
 
   const id = recordingIdFor(absoluteSource);
-  const root = join(process.cwd(), ".reelink", id);
+  const root = join(process.cwd(), ".reck", id);
   const framesDir = join(root, "frames");
   mkdirSync(framesDir, { recursive: true });
 
@@ -71,28 +71,46 @@ export function writeManifest(path: string, manifest: Manifest): void {
 }
 
 /**
- * Canonical imported-video / future canonical packages: `.reelink/<recording_id>/` or `<recording_id>.reelink/`.
- * Does not resolve legacy `.reelink/browser-recordings/<id>` (those lack Layer 0 analysis beside manifest).
+ * Current packages resolve from `.reck/<id>/`, `.reck/browser-recordings/<id>`, or sibling `<id>.reck/`.
+ * Legacy `.reelink` package layouts remain read-compatible only for existing data.
  */
 export function resolveRecordingDir(recordingId: string): string {
-  const direct = join(process.cwd(), ".reelink", recordingId);
+  const direct = join(process.cwd(), ".reck", recordingId);
   if (existsSync(direct)) return direct;
 
-  const sibling = resolve(`${recordingId}.reelink`);
+  const browserDirect = resolveBrowserRecordingArtifactDir(recordingId);
+  if (existsSync(browserDirect)) return browserDirect;
+
+  const sibling = resolve(`${recordingId}.reck`);
   if (existsSync(sibling)) return sibling;
+
+  const legacyDirect = join(process.cwd(), ".reelink", recordingId);
+  if (existsSync(legacyDirect)) return legacyDirect;
+
+  const legacyBrowserDirect = resolveLegacyBrowserRecordingArtifactDir(recordingId);
+  if (existsSync(legacyBrowserDirect)) return legacyBrowserDirect;
+
+  const legacySibling = resolve(recordingId + ".reelink");
+  if (existsSync(legacySibling)) return legacySibling;
 
   throw new RecordingNotFoundError(recordingId);
 }
 
-/** Absolute path to `.reelink/browser-recordings/<id>` (whether or not it exists yet). */
+/** Absolute path to `.reck/browser-recordings/<id>` (whether or not it exists yet). */
+export function resolveBrowserRecordingArtifactDir(recordingId: string): string {
+  return join(process.cwd(), ".reck", LEGACY_BROWSER_RECORDINGS_DIR, recordingId);
+}
+
 export function resolveLegacyBrowserRecordingArtifactDir(recordingId: string): string {
   return join(process.cwd(), ".reelink", LEGACY_BROWSER_RECORDINGS_DIR, recordingId);
 }
 
 /** Legacy browser session artifact root if present, else null. */
 export function resolveLegacyBrowserRecordingRoot(recordingId: string): string | null {
-  const root = resolveLegacyBrowserRecordingArtifactDir(recordingId);
-  return existsSync(root) ? root : null;
+  const root = resolveBrowserRecordingArtifactDir(recordingId);
+  if (existsSync(root)) return root;
+  const legacyRoot = resolveLegacyBrowserRecordingArtifactDir(recordingId);
+  return existsSync(legacyRoot) ? legacyRoot : null;
 }
 
 export type LegacyBrowserRecordingPaths = {
@@ -104,6 +122,8 @@ export type LegacyBrowserRecordingPaths = {
   domDir: string;
   videoPath: string;
   tracePath: string;
+  framesDir: string;
+  logsJsonlPath: string;
   fiberCommitsJsonlPath: string;
   sourceDictionaryPath: string;
   reactGrabEventsJsonlPath: string;
@@ -119,6 +139,8 @@ export function legacyBrowserRecordingPathsFromRoot(root: string): LegacyBrowser
     domDir: join(root, "dom"),
     videoPath: join(root, "video.webm"),
     tracePath: join(root, "trace.zip"),
+    framesDir: join(root, "frames"),
+    logsJsonlPath: join(root, "logs.jsonl"),
     fiberCommitsJsonlPath: join(root, "fiber-commits.jsonl"),
     sourceDictionaryPath: join(root, "source-dictionary.json"),
     reactGrabEventsJsonlPath: join(root, "react-grab-events.jsonl"),
@@ -140,6 +162,8 @@ export type BrowserRecordingPackage = {
   domDir: string;
   videoPath: string;
   tracePath: string;
+  framesDir: string;
+  logsJsonlPath: string;
   fiberCommitsJsonlPath: string;
   sourceDictionaryPath: string;
   reactGrabEventsJsonlPath: string;
@@ -149,9 +173,10 @@ export function createBrowserRecordingPackage(
   recordingId: string,
   options: { outPath?: string } = {},
 ): BrowserRecordingPackage {
-  const root = resolveLegacyBrowserRecordingArtifactDir(recordingId);
+  const root = resolveBrowserRecordingArtifactDir(recordingId);
   const paths = legacyBrowserRecordingPathsFromRoot(root);
   mkdirSync(paths.domDir, { recursive: true });
+  mkdirSync(paths.framesDir, { recursive: true });
   mkdirSync(dirname(paths.videoPath), { recursive: true });
   const videoPath = options.outPath ? resolve(options.outPath) : paths.videoPath;
   mkdirSync(dirname(videoPath), { recursive: true });
@@ -166,6 +191,8 @@ export function createBrowserRecordingPackage(
     domDir: paths.domDir,
     videoPath,
     tracePath: paths.tracePath,
+    framesDir: paths.framesDir,
+    logsJsonlPath: paths.logsJsonlPath,
     fiberCommitsJsonlPath: paths.fiberCommitsJsonlPath,
     sourceDictionaryPath: paths.sourceDictionaryPath,
     reactGrabEventsJsonlPath: paths.reactGrabEventsJsonlPath,
@@ -216,7 +243,7 @@ export type DeterministicQueryAnswer = {
 };
 
 /**
- * Browser-only deterministic query branch: legacy `.reelink/browser-recordings/<session_id>/`.
+ * Browser-only deterministic query branch: legacy `.reck/browser-recordings/<session_id>/`.
  * Returns null when that layout is absent; otherwise may append browser pattern ids to `tried` and return an answer.
  */
 export function tryBrowserRecordingDeterministicQuery(
@@ -340,14 +367,14 @@ function isBrowserDomQuestion(value: string): boolean {
   return /\b(browser|page)\b.*\b(dom|html|snapshot)\b/.test(value) || /\b(dom|html|snapshot)\b.*\b(browser|page)\b/.test(value);
 }
 
-export async function loadAnalysis(recordingId: string): Promise<AnalyzeResult> {
+export async function loadAnalysis(recordingId: string): Promise<StoredAnalysis> {
   const raw = JSON.parse(readFileSync(join(resolveRecordingDir(recordingId), "analysis.json"), "utf8")) as unknown;
-  return AnalyzeResultSchema.parse(normalizeLegacyAnalysis(raw));
+  return StoredAnalysisSchema.parse(normalizeStoredAnalysis(raw));
 }
 
 export async function loadManifest(recordingId: string): Promise<Manifest> {
   const raw = JSON.parse(readFileSync(join(resolveRecordingDir(recordingId), "manifest.json"), "utf8")) as unknown;
-  return ManifestSchema.parse(raw);
+  return ManifestSchema.passthrough().parse(raw);
 }
 
 export async function listWorkItems(recordingId: string): Promise<WorkItem[]> {
@@ -373,21 +400,50 @@ export async function findNearestWorkItemByTimestamp(
 }
 
 export async function findFrameNearTimestamp(recordingId: string, ts: number): Promise<FrameMatch | null> {
-  const manifest = await loadManifest(recordingId);
-  const layer0 = manifest.streams?.layer0;
-  if (layer0?.status && layer0.status !== "available") {
+  const browserPaths = legacyBrowserRecordingPaths(recordingId);
+  const root = existsSync(join(process.cwd(), ".reck", recordingId)) || existsSync(resolve(`${recordingId}.reck`)) || browserPaths
+    ? resolveRecordingDir(recordingId)
+    : null;
+  if (!root) return browserPaths ? findBrowserFrameNearTimestamp(browserPaths, ts) : null;
+
+  const manifest = await loadManifest(recordingId).catch((error) => {
+    if (browserPaths) return null;
+    throw error;
+  });
+  if (!manifest) return findBrowserFrameNearTimestamp(browserPaths as LegacyBrowserRecordingPaths, ts);
+  const framesStream = manifest.streams?.frames ?? manifest.streams?.layer0;
+  if (framesStream?.status && framesStream.status !== "available") {
     return null;
   }
+
+  const manifestWithFrames = manifest as unknown as { frame_snapshots?: unknown };
+  const frameSnapshots = Array.isArray(manifestWithFrames.frame_snapshots)
+    ? manifestWithFrames.frame_snapshots.filter(isFrameSnapshot)
+    : [];
+  if (frameSnapshots.length) {
+    const nearest = frameSnapshots.reduce((best, frame, index) => {
+      const delta = Math.abs(frame.ts - ts);
+      return delta < best.delta_sec ? { frame, index, delta_sec: delta } : best;
+    }, { frame: frameSnapshots[0] as FrameSnapshot, index: 0, delta_sec: Math.abs((frameSnapshots[0] as FrameSnapshot).ts - ts) });
+    return {
+      path: resolvePackageArtifact(root, nearest.frame.path),
+      index: nearest.index + 1,
+      ts: nearest.frame.ts,
+      delta_sec: nearest.delta_sec,
+    };
+  }
+
+  if (browserPaths) return findBrowserFrameNearTimestamp(browserPaths, ts);
 
   const frameCount = manifest.preprocessing.frame_count;
   const effectiveFps = manifest.preprocessing.effective_fps;
   const framesDir = manifest.artifacts.frames;
 
-  if (frameCount <= 0 || effectiveFps <= 0 || !framesDir) return null;
+  if (frameCount <= 0 || effectiveFps <= 0 || !framesDir || framesStream?.status !== "available") return null;
 
   const index = Math.min(frameCount, Math.max(1, Math.round(ts * effectiveFps) + 1));
   const frameTs = (index - 1) / effectiveFps;
-  const path = join(resolveRecordingDir(recordingId), framesDir, `frame-${String(index).padStart(4, "0")}.jpg`);
+  const path = join(resolvePackageArtifact(root, framesDir), `frame-${String(index).padStart(4, "0")}.jpg`);
 
   return {
     path,
@@ -397,23 +453,93 @@ export async function findFrameNearTimestamp(recordingId: string, ts: number): P
   };
 }
 
+function findBrowserFrameNearTimestamp(paths: LegacyBrowserRecordingPaths, ts: number): FrameMatch | null {
+  if (!existsSync(paths.framesDir)) return null;
+
+  const files = readdirSync(paths.framesDir)
+    .filter((file) => /\.(?:jpg|jpeg|png|webp)$/i.test(file))
+    .sort();
+  if (!files.length) return null;
+
+  const fps = browserFrameFps(paths.manifestPath);
+  const candidates = files.map((file, offset) => {
+    const index = frameIndexFromName(file) ?? offset + 1;
+    const frameTs = (index - 1) / fps;
+    return { path: join(paths.framesDir, file), index, ts: frameTs, delta_sec: Math.abs(frameTs - ts) };
+  });
+
+  return candidates.reduce((best, candidate) => (candidate.delta_sec < best.delta_sec ? candidate : best), candidates[0] as FrameMatch);
+}
+
+function browserFrameFps(manifestPath: string): number {
+  if (!existsSync(manifestPath)) return 1;
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as Record<string, unknown>;
+  const preprocessing = manifest.preprocessing;
+  if (preprocessing && typeof preprocessing === "object") {
+    const fps = (preprocessing as { effective_fps?: unknown }).effective_fps;
+    if (typeof fps === "number" && fps > 0) return fps;
+  }
+  const fps = manifest.effective_fps ?? manifest.fps;
+  return typeof fps === "number" && fps > 0 ? fps : 1;
+}
+
+function frameIndexFromName(file: string): number | null {
+  const match = file.match(/(?:frame|screenshot|snapshot)[-_]?(\d+)/i) ?? file.match(/(\d+)/);
+  if (!match?.[1]) return null;
+  const parsed = Number.parseInt(match[1], 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
 export async function listStreams(recordingId: string): Promise<Manifest["streams"]> {
   return (await loadManifest(recordingId)).streams;
 }
 
-export async function isProdBuild(recordingId: string): Promise<boolean> {
-  return (await loadManifest(recordingId)).prod_build;
+export async function isProdBuild(recordingId: string): Promise<boolean | null> {
+  const manifest = await loadManifest(recordingId);
+  return manifest.prod_build_status === "detected" ? manifest.prod_build : null;
 }
 
-function normalizeLegacyAnalysis(raw: unknown): unknown {
+type FrameSnapshot = {
+  ts: number;
+  path: string;
+};
+
+function isFrameSnapshot(value: unknown): value is FrameSnapshot {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<FrameSnapshot>;
+  return typeof candidate.ts === "number" && typeof candidate.path === "string" && candidate.path.length > 0;
+}
+
+function resolvePackageArtifact(root: string, artifactPath: string): string {
+  return artifactPath.startsWith("/") ? artifactPath : join(root, artifactPath);
+}
+
+function normalizeStoredAnalysis(raw: unknown): unknown {
   if (!raw || typeof raw !== "object") return raw;
   const candidate = raw as { findings?: unknown; work_items?: unknown };
-  if (candidate.work_items || !Array.isArray(candidate.findings)) return raw;
+  const workItems = Array.isArray(candidate.work_items)
+    ? candidate.work_items
+    : Array.isArray(candidate.findings)
+      ? candidate.findings.map(legacyFindingToWorkItem)
+      : undefined;
+  if (!workItems) return raw;
 
   return {
     ...candidate,
-    work_items: candidate.findings.map(legacyFindingToWorkItem),
-    findings: undefined,
+    findings: Array.isArray(candidate.findings) ? candidate.findings.map(publicFindingFromUnknown) : workItems.map(publicFindingFromUnknown),
+    work_items: workItems,
+  };
+}
+
+function publicFindingFromUnknown(finding: unknown): Pick<WorkItem, "id" | "ts" | "type" | "severity" | "title" | "confidence"> {
+  const item = legacyFindingToWorkItem(finding);
+  return {
+    id: item.id,
+    ts: item.ts,
+    type: item.type,
+    severity: item.severity,
+    title: item.title,
+    confidence: item.confidence,
   };
 }
 

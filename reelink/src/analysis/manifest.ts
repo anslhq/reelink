@@ -20,6 +20,8 @@ export function buildLayer0Manifest(
       max_frames: preprocessed.policy.maxFrames,
       long_edge_px: preprocessed.policy.longEdgePx,
       frame_count: preprocessed.framePaths.length,
+      strategy: preprocessed.policy.strategy,
+      primary_analysis_uses_raw_video: preprocessed.policy.primaryAnalysisUsesRawVideo,
     },
     artifacts: {
       analysis: "analysis.json",
@@ -43,8 +45,18 @@ export function buildLayer0Manifest(
             provider: analysis.provider,
             model_id: analysis.modelId,
             route: analysis.route,
+            route_family: analysis.routeFamily,
+            input_modalities: analysis.inputModalities,
+            drift_policy:
+              "Primary Layer 0 analysis requires an OpenRouter Qwen route with video input; image-only or unknown Qwen routes fail instead of falling back to frames.",
           },
-    prod_build: false,
+    prod_build: null,
+    prod_build_status: "unknown",
+    relations: {
+      imported_video_id: recording.id,
+      related_recording_ids: [],
+      relation: "source_import",
+    },
     safety: {
       redaction_applied: false,
     },

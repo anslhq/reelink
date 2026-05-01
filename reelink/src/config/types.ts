@@ -1,4 +1,4 @@
-/** Resolved Reelink configuration (non-secrets may come from file; secrets are env-only). */
+/** Resolved Reck configuration (non-secrets may come from file; secrets are env-only). */
 export type ReelinkConfig = {
   homeDir: string;
   configPath: string;
@@ -7,6 +7,9 @@ export type ReelinkConfig = {
   openRouterApiKey?: string;
   lmStudioBaseUrl?: string;
   openRouterModel?: string;
+  openAiApiKey?: string;
+  openAiModel?: string;
+  queryGptFallbackEnabled?: boolean;
 };
 
 export type DiagnosticStatus = "pass" | "warn" | "fail" | "skipped" | "not_configured";
@@ -31,4 +34,10 @@ export type DoctorRuntime = {
   nodeVersion?: string;
   bunVersion?: string | null;
   configFileExists?: boolean;
+  packageResolution?: string | null;
+  playwrightChromiumInstalled?: boolean | null;
+  reactGrabResolvable?: boolean | null;
+  reactGrabInitialized?: boolean | null;
+  reactGrabVerified?: boolean | null;
+  codexConfigStatus?: "configured" | "missing" | "unknown";
 };
